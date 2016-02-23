@@ -17,3 +17,10 @@ func TestMain(t *testing.T) {
 func TestVersion(t *testing.T) {
 	RunVersion(true, NewBeerCellar())
 }
+
+func TestGetNumberOfCellars(t *testing.T) {
+	bc := NewBeerCellar()
+	if bc.GetNumberOfCellars() != 8 {
+		t.Errorf("Wrong number of cellars: %d\n", bc.GetNumberOfCellars())
+	}
+}

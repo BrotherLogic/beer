@@ -2,14 +2,25 @@ package main
 
 import "flag"
 import "fmt"
+import "strconv"
 
 type BeerCellar struct {
 	version string
+	bcellar []Cellar
+}
+
+func (cellar BeerCellar) GetNumberOfCellars() int {
+	return len(cellar.bcellar)
 }
 
 func NewBeerCellar() *BeerCellar {
 	bc := BeerCellar{
 		version: "0.1",
+		bcellar: make([]Cellar, 0),
+	}
+
+	for i := 1; i < 9; i++ {
+		bc.bcellar = append(bc.bcellar, NewCellar("cellar"+strconv.Itoa(i)))
 	}
 
 	return &bc
