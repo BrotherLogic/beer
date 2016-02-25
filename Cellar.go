@@ -34,8 +34,11 @@ func BuildCellar(file_name string) *Cellar {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		beer := NewBeer(scanner.Text())
-		cellar.AddBeer(beer)
+		beer, err := NewBeer(scanner.Text())
+
+		if err == nil {
+			cellar.AddBeer(beer)
+		}
 	}
 
 	return &cellar
