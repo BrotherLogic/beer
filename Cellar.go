@@ -14,12 +14,13 @@ func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0)}
 }
 
-func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
-	//Insert cost of an empty cellar should be high
-	if len(cellar.contents) == 0 {
-		return int(math.MaxInt16)
-	}
+func (cellar *Cellar) GetNext() Beer {
+	beer := cellar.contents[0]
+	cellar.contents = cellar.contents[1:]
+	return beer
+}
 
+func (cellar *Cellar) getInsertPoint(beer Beer) int {
 	insert_point := -1
 	for i := 0; i < len(cellar.contents); i++ {
 		if beer.IsAfter(cellar.contents[i]) {
@@ -31,12 +32,26 @@ func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
 	if insert_point == -1 {
 		insert_point = len(cellar.contents)
 	}
+	return insert_point
+}
+
+func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
+	//Insert cost of an empty cellar should be high
+	if len(cellar.contents) == 0 {
+		return int(math.MaxInt16)
+	}
+
+	insert_point := cellar.getInsertPoint(beer)
 
 	return insert_point
 }
 
 func (cellar *Cellar) AddBeer(beer Beer) {
-	cellar.contents = append(cellar.contents, beer)
+	insert_point := cellar.getInsertPoint(beer)
+	before := cellar.contents[:insert_point]
+	after := cellar.contents[insert_point:]
+	cellar.contents = append(before, beer)
+	cellar.contents = append(cellar.contents, after...)
 }
 
 func (cellar Cellar) Size() int {
