@@ -1,9 +1,20 @@
 package main
 
 import "bufio"
+import "fmt"
 import "log"
 import "math"
 import "os"
+import "strconv"
+
+type Printer interface {
+	Println(string)
+}
+type StdOutPrint struct{}
+
+func (stdprinter *StdOutPrint) Println(output string) {
+	fmt.Printf("%v\n", output)
+}
 
 type Cellar struct {
 	name     string
@@ -12,6 +23,14 @@ type Cellar struct {
 
 func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0)}
+}
+
+func (cellar *Cellar) PrintCellar(out Printer) {
+	out.Println(cellar.name)
+
+	for _, v := range cellar.contents {
+		out.Println("BeerName " + strconv.Itoa(v.id))
+	}
 }
 
 func (cellar *Cellar) GetNext() Beer {

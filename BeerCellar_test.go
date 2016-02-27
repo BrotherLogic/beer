@@ -39,3 +39,21 @@ func TestAddToCellar(t *testing.T) {
 		t.Errorf("Too many cellars are not empty %d\n", cellar.GetEmptyCellarCount())
 	}
 }
+
+func TestPrintOutBeerCellar(t *testing.T) {
+	cellar := NewBeerCellar()
+	beer1, _ := NewBeer("1234~01/01/16")
+	beer2, _ := NewBeer("1234~01/02/16")
+	beer3, _ := NewBeer("1234~01/03/16")
+
+	cellar.AddBeerToCellar(beer1)
+	cellar.AddBeerToCellar(beer2)
+	cellar.AddBeerToCellar(beer3)
+
+	linecounter := &LineCounterPrinter{}
+	cellar.PrintCellar(linecounter)
+
+	if linecounter.GetCount() != 3+8+7 {
+		t.Errorf("Print cellar has printed the wrong number of lines: %v\n", linecounter.GetCount())
+	}
+}
