@@ -13,6 +13,34 @@ func (cellar BeerCellar) GetNumberOfCellars() int {
 	return len(cellar.bcellar)
 }
 
+func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
+	best_cellar := -1
+	best_score := -1
+
+	for i, v := range cellar.bcellar {
+		insert_count := v.ComputeInsertCost(beer)
+
+		if insert_count > 0 && (insert_count < best_score || best_score < 0) {
+			best_score = insert_count
+			best_cellar = i
+		}
+	}
+
+	cellar.bcellar[best_cellar].AddBeer(beer)
+
+	return cellar.bcellar[best_cellar]
+}
+
+func (cellar BeerCellar) GetEmptyCellarCount() int {
+	count := 0
+	for _, v := range cellar.bcellar {
+		if v.Size() == 0 {
+			count++
+		}
+	}
+	return count
+}
+
 func NewBeerCellar() *BeerCellar {
 	bc := BeerCellar{
 		version: "0.1",
