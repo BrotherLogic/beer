@@ -2,6 +2,7 @@ package main
 
 import "bufio"
 import "log"
+import "math"
 import "os"
 
 type Cellar struct {
@@ -11,6 +12,27 @@ type Cellar struct {
 
 func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0)}
+}
+
+func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
+	//Insert cost of an empty cellar should be high
+	if len(cellar.contents) == 0 {
+		return int(math.MaxInt16)
+	}
+
+	insert_point := -1
+	for i := 0; i < len(cellar.contents); i++ {
+		if beer.IsAfter(cellar.contents[i]) {
+			insert_point = i
+			break
+		}
+	}
+
+	if insert_point == -1 {
+		insert_point = len(cellar.contents)
+	}
+
+	return insert_point
 }
 
 func (cellar *Cellar) AddBeer(beer Beer) {

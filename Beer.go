@@ -9,6 +9,13 @@ type Beer struct {
 	drink_date string
 }
 
+func (beer1 Beer) IsAfter(beer2 Beer) bool {
+	time1, _ := time.Parse("02/01/06", beer1.drink_date)
+	time2, _ := time.Parse("02/01/06", beer2.drink_date)
+
+	return time1.Before(time2)
+}
+
 func NewBeer(line string) (Beer, error) {
 	elems := strings.Split(line, "~")
 	bid, _ := strconv.Atoi(elems[0])
