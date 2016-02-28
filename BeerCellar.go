@@ -22,6 +22,20 @@ func (cellar BeerCellar) GetNumberOfCellars() int {
 	return len(cellar.bcellar)
 }
 
+func (cellar BeerCellar) Save() {
+	for _, v := range cellar.bcellar {
+		v.Save()
+	}
+}
+
+func (cellar BeerCellar) Size() int {
+	size := 0
+	for _, v := range cellar.bcellar {
+		size += v.Size()
+	}
+	return size
+}
+
 func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
 	best_cellar := -1
 	best_score := -1
@@ -48,6 +62,20 @@ func (cellar BeerCellar) GetEmptyCellarCount() int {
 		}
 	}
 	return count
+}
+
+func LoadBeerCellar() *BeerCellar {
+
+	bc := BeerCellar{
+		version: "0.1",
+		bcellar: make([]Cellar, 0),
+	}
+
+	for i := 1; i < 9; i++ {
+		bc.bcellar = append(bc.bcellar, *BuildCellar("cellar" + strconv.Itoa(i)))
+	}
+
+	return &bc
 }
 
 func NewBeerCellar() *BeerCellar {
