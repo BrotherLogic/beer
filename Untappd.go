@@ -8,7 +8,7 @@ import "os"
 import "strconv"
 import "strings"
 
-type Unmarshaller interface {
+type unmarshaller interface {
 	Unmarshal([]byte, *map[string]interface{}) error
 }
 type mainUnmarshaller struct{}
@@ -17,7 +17,7 @@ func (unmarshaller mainUnmarshaller) Unmarshal(inp []byte, resp *map[string]inte
 	return json.Unmarshal(inp, resp)
 }
 
-type ResponseConverter interface {
+type responseConverter interface {
 	Convert(*http.Response) ([]byte, error)
 }
 type mainConverter struct{}
@@ -27,7 +27,7 @@ func (converter mainConverter) Convert(response *http.Response) ([]byte, error) 
 	return ioutil.ReadAll(response.Body)
 }
 
-type HttpResponseFetcher interface {
+type httpResponseFetcher interface {
 	Fetch(url string) (*http.Response, error)
 }
 type mainFetcher struct{}
@@ -37,7 +37,7 @@ func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
 	return http.Get(url)
 }
 
-func GetBeerPage(fetcher HttpResponseFetcher, converter ResponseConverter, id int) string {
+func getBeerPage(fetcher httpResponseFetcher, converter responseConverter, id int) string {
 	url := "https://api.untappd.com/v4/beer/info/BID?client_id=CLIENTID&client_secret=CLIENTSECRET&compact=true"
 	url = strings.Replace(url, "BID", strconv.Itoa(id), 1)
 	url = strings.Replace(url, "CLIENTID", os.Getenv("CLIENTID"), 1)
@@ -46,7 +46,7 @@ func GetBeerPage(fetcher HttpResponseFetcher, converter ResponseConverter, id in
 	response, err := fetcher.Fetch(url)
 
 	if err != nil {
-		log.Printf("%q\n", err)
+		log.Printf("Failed on getBeerPage: %q\n", err)
 	} else {
 		contents, err := converter.Convert(response)
 		if err != nil {
@@ -59,7 +59,7 @@ func GetBeerPage(fetcher HttpResponseFetcher, converter ResponseConverter, id in
 	return "Failed to retrieve " + strconv.Itoa(id)
 }
 
-func ConvertPageToName(page string, unmarshaller Unmarshaller) string {
+func convertPageToName(page string, unmarshaller unmarshaller) string {
 	var mapper map[string]interface{}
 	err := unmarshaller.Unmarshal([]byte(page), &mapper)
 	if err != nil {
@@ -73,10 +73,11 @@ func ConvertPageToName(page string, unmarshaller Unmarshaller) string {
 	return brewery["brewery_name"].(string) + " - " + beer["beer_name"].(string)
 }
 
+// GetBeerName Determines the name of the beer from the id
 func GetBeerName(id int) string {
-	var fetcher HttpResponseFetcher = mainFetcher{}
-	var converter ResponseConverter = mainConverter{}
-	var unmarshaller Unmarshaller = mainUnmarshaller{}
-	text := GetBeerPage(fetcher, converter, id)
-	return ConvertPageToName(text, unmarshaller)
+	var fetcher httpResponseFetcher = mainFetcher{}
+	var converter responseConverter = mainConverter{}
+	var unmarshaller unmarshaller = mainUnmarshaller{}
+	text := getBeerPage(fetcher, converter, id)
+	return convertPageToName(text, unmarshaller)
 }

@@ -56,11 +56,11 @@ func TestMain(t *testing.T) {
 }
 
 func TestRunVersion(t *testing.T) {
-	RunVersion(true, NewBeerCellar("test"))
+	runVersion(true, NewBeerCellar("test"))
 }
 
 func TestRunAddBeer(t *testing.T) {
-	RunAddBeer(true, "1234", "01/02/16", NewBeerCellar("test"))
+	runAddBeer(true, "1234", "01/02/16", NewBeerCellar("test"))
 }
 
 func TestGetNumberOfCellars(t *testing.T) {

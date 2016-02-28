@@ -9,8 +9,8 @@ func TestNewBeer(t *testing.T) {
 		t.Errorf("Beer id %d is not 123\n", beer.id)
 	}
 
-	if beer.drink_date != "01/02/16" {
-		t.Errorf("Date %q is not 01/02/16\n", beer.drink_date)
+	if beer.drinkDate != "01/02/16" {
+		t.Errorf("Date %q is not 01/02/16\n", beer.drinkDate)
 	}
 }
 
