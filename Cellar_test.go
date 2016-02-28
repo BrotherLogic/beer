@@ -3,6 +3,18 @@ package main
 import "math"
 import "testing"
 
+type LineCounterPrinter struct {
+	lcount int
+}
+
+func (lineCounter *LineCounterPrinter) Println(output string) {
+	lineCounter.lcount = lineCounter.lcount + 1
+}
+
+func (lineCounter LineCounterPrinter) GetCount() int {
+	return lineCounter.lcount
+}
+
 func TestBuildCellar(t *testing.T) {
 	cellar := BuildCellar("testdata/simplecellar.cellar")
 	if cellar.Size() != 3 {
@@ -78,5 +90,23 @@ func TestCellarInsert(t *testing.T) {
 	}
 	if beert3 != beer3 {
 		t.Errorf("Beer3 has been inserted in the wrong position\n")
+	}
+}
+
+func TestPrintOutCellar(t *testing.T) {
+	cellar := NewCellar("test_cellar")
+	beer1, _ := NewBeer("1234~01/01/16")
+	beer2, _ := NewBeer("1234~01/02/16")
+	beer3, _ := NewBeer("1234~01/03/16")
+
+	cellar.AddBeer(beer1)
+	cellar.AddBeer(beer2)
+	cellar.AddBeer(beer3)
+
+	linecounter := &LineCounterPrinter{}
+	cellar.PrintCellar(linecounter)
+
+	if linecounter.GetCount() != 4 {
+		t.Errorf("Print cellar has printed the wrong number of lines: %v\n", linecounter.GetCount())
 	}
 }

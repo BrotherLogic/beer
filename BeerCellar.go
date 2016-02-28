@@ -9,6 +9,15 @@ type BeerCellar struct {
 	bcellar []Cellar
 }
 
+func (cellar BeerCellar) PrintCellar(printer Printer) {
+	for i, v := range cellar.bcellar {
+		if i > 0 {
+			printer.Println("--------------")
+		}
+		v.PrintCellar(printer)
+	}
+}
+
 func (cellar BeerCellar) GetNumberOfCellars() int {
 	return len(cellar.bcellar)
 }
