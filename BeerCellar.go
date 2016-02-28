@@ -95,9 +95,27 @@ func (bc *BeerCellar) GetVersion() string {
 	return bc.version
 }
 
+func (bc *BeerCellar) AddBeer(id string, date string) *Cellar {
+	id_num, _ := strconv.Atoi(id)
+	if id_num >= 0 {
+		cellar := bc.AddBeerToCellar(Beer{id: id_num, drink_date: date})
+		return &cellar
+	}
+
+	return nil
+}
+
 func RunVersion(version bool, cellar *BeerCellar) {
 	if version {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
+	}
+}
+
+func RunAddBeer(add_beer bool, id string, date string, cellar *BeerCellar) {
+	if add_beer {
+		box := cellar.AddBeer(id, date)
+		print := &StdOutPrint{}
+		box.PrintCellar(print)
 	}
 }
 
@@ -106,8 +124,16 @@ func main() {
 
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
-	flag.Parse()
 
-	cellar := NewBeerCellar()
+	var add_beer bool
+	var beerid string
+	var drink_date string
+	flag.BoolVar(&add_beer, "add", false, "Adds a beer")
+	flag.StringVar(&beerid, "id", "-1", "ID of the beer")
+	flag.StringVar(&drink_date, "date", "", "Date to be drunk by")
+
+	flag.Parse()
+	cellar := LoadBeerCellar()
 	RunVersion(version, cellar)
+	RunAddBeer(add_beer, beerid, drink_date, cellar)
 }
