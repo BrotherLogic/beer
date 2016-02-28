@@ -6,6 +6,7 @@ import "strconv"
 
 type BeerCellar struct {
 	version string
+	name    string
 	bcellar []Cellar
 }
 
@@ -64,28 +65,30 @@ func (cellar BeerCellar) GetEmptyCellarCount() int {
 	return count
 }
 
-func LoadBeerCellar() *BeerCellar {
+func LoadBeerCellar(name string) *BeerCellar {
 
 	bc := BeerCellar{
 		version: "0.1",
+		name:    name,
 		bcellar: make([]Cellar, 0),
 	}
 
 	for i := 1; i < 9; i++ {
-		bc.bcellar = append(bc.bcellar, *BuildCellar("cellar" + strconv.Itoa(i)))
+		bc.bcellar = append(bc.bcellar, *BuildCellar(name + strconv.Itoa(i) + ".cellar"))
 	}
 
 	return &bc
 }
 
-func NewBeerCellar() *BeerCellar {
+func NewBeerCellar(name string) *BeerCellar {
 	bc := BeerCellar{
 		version: "0.1",
+		name:    name,
 		bcellar: make([]Cellar, 0),
 	}
 
 	for i := 1; i < 9; i++ {
-		bc.bcellar = append(bc.bcellar, NewCellar("cellar"+strconv.Itoa(i)))
+		bc.bcellar = append(bc.bcellar, NewCellar(name+strconv.Itoa(i)+".cellar"))
 	}
 
 	return &bc
@@ -120,8 +123,6 @@ func RunAddBeer(add_beer bool, id string, date string, cellar *BeerCellar) {
 }
 
 func main() {
-	fmt.Printf("HERE\n")
-
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
 
@@ -132,8 +133,10 @@ func main() {
 	flag.StringVar(&beerid, "id", "-1", "ID of the beer")
 	flag.StringVar(&drink_date, "date", "", "Date to be drunk by")
 
+	cellar_name := "prod"
+
 	flag.Parse()
-	cellar := LoadBeerCellar()
+	cellar := NewBeerCellar(cellar_name)
 	RunVersion(version, cellar)
 	RunAddBeer(add_beer, beerid, drink_date, cellar)
 }
