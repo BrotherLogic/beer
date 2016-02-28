@@ -15,6 +15,13 @@ func (lineCounter LineCounterPrinter) GetCount() int {
 	return lineCounter.lcount
 }
 
+func TestPrint(t *testing.T) {
+	printer := StdOutPrint{}
+
+	//Line below should not fail
+	printer.Println("Made up")
+}
+
 func TestBuildCellar(t *testing.T) {
 	cellar := BuildCellar("testdata/simplecellar.cellar")
 	if cellar.Size() != 3 {
@@ -109,4 +116,27 @@ func TestPrintOutCellar(t *testing.T) {
 	if linecounter.GetCount() != 4 {
 		t.Errorf("Print cellar has printed the wrong number of lines: %v\n", linecounter.GetCount())
 	}
+}
+
+func TestSaveCellar(t *testing.T) {
+	cellar := NewCellar("test_cellar")
+	beer1, _ := NewBeer("1234~01/01/16")
+	beer2, _ := NewBeer("1234~01/02/16")
+	beer3, _ := NewBeer("1234~01/03/16")
+
+	cellar.AddBeer(beer1)
+	cellar.AddBeer(beer2)
+	cellar.AddBeer(beer3)
+
+	cellar.Save()
+
+	cellar2 := BuildCellar("test_cellar")
+	if cellar2.Size() != 3 {
+		t.Errorf("Reloading cellar is not the right size: %v\n", cellar2.Size())
+	}
+}
+
+func TestSaveBadCellar(t *testing.T) {
+	cellar := NewCellar("madeupdirectory/blah/blah/cellar")
+	cellar.Save()
 }

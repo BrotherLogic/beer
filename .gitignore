@@ -27,3 +27,5 @@ _testmain.go
 bin
 coverage.out
 test.sh
+test_cellar
+cellar[1-8]

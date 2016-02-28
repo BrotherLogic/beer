@@ -25,6 +25,21 @@ func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0)}
 }
 
+func (cellar *Cellar) Save() {
+	f, err := os.Create(cellar.name)
+
+	if err != nil {
+		log.Printf("Error opening file %v\n", err)
+		return
+	}
+
+	defer f.Close()
+
+	for _, v := range cellar.contents {
+		fmt.Fprintf(f, "%v~%v\n", v.id, v.drink_date)
+	}
+}
+
 func (cellar *Cellar) PrintCellar(out Printer) {
 	out.Println(cellar.name)
 

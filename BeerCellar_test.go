@@ -57,3 +57,21 @@ func TestPrintOutBeerCellar(t *testing.T) {
 		t.Errorf("Print cellar has printed the wrong number of lines: %v\n", linecounter.GetCount())
 	}
 }
+
+func TestSaveBeerCellar(t *testing.T) {
+	cellar := NewBeerCellar()
+	beer1, _ := NewBeer("1234~01/01/16")
+	beer2, _ := NewBeer("1234~01/02/16")
+	beer3, _ := NewBeer("1234~01/03/16")
+
+	cellar.AddBeerToCellar(beer1)
+	cellar.AddBeerToCellar(beer2)
+	cellar.AddBeerToCellar(beer3)
+
+	cellar.Save()
+
+	cellar2 := LoadBeerCellar()
+	if cellar2.Size() != cellar.Size() {
+		t.Errorf("Mismatched sizes %v and %v\n", cellar.Size(), cellar2.Size())
+	}
+}
