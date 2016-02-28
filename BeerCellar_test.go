@@ -10,12 +10,38 @@ func TestGetVersion(t *testing.T) {
 	}
 }
 
+func TestAddBeer(t *testing.T) {
+	mine := NewBeerCellar()
+	mine.AddBeer("1234", "01/01/16")
+	mine.Save()
+
+	mine2 := LoadBeerCellar()
+	if mine2.Size() != mine.Size() && mine2.Size() == 1 {
+		t.Errorf("Size on reload is incorrect %v vs %v\n", mine.Size(), mine2.Size())
+	}
+}
+
+func TestAddNoBeer(t *testing.T) {
+	mine := NewBeerCellar()
+	mine.AddBeer("-1", "01/01/16")
+	mine.Save()
+
+	mine2 := LoadBeerCellar()
+	if mine2.Size() != 0 {
+		t.Errorf("Error on adding no beer - %v but %v\n", mine.Size(), mine2.Size())
+	}
+}
+
 func TestMain(t *testing.T) {
 	main()
 }
 
-func TestVersion(t *testing.T) {
+func TestRunVersion(t *testing.T) {
 	RunVersion(true, NewBeerCellar())
+}
+
+func TestRunAddBeer(t *testing.T) {
+	RunAddBeer(true, "1234", "01/02/16", NewBeerCellar())
 }
 
 func TestGetNumberOfCellars(t *testing.T) {
