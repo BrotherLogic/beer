@@ -6,9 +6,12 @@ branches:
 before_install:
 - go get github.com/axw/gocov/gocov
 - go get github.com/mattn/goveralls
+- go get github.com/golang/lint/golint
+- go get github.com/GeertJohan/fgt
 - if ! go get github.com/golang/tools/cmd/cover; then go get golang.org/x/tools/cmd/cover;
   fi
 script:
+- fgt golint ./...
 - $HOME/gopath/bin/goveralls -service=travis-ci github.com/BrotherLogic/beer
 env:
   global:

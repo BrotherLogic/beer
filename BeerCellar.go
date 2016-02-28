@@ -4,12 +4,14 @@ import "flag"
 import "fmt"
 import "strconv"
 
+// BeerCellar the overall beer cellar
 type BeerCellar struct {
 	version string
 	name    string
 	bcellar []Cellar
 }
 
+// PrintCellar prints out the cellar
 func (cellar BeerCellar) PrintCellar(printer Printer) {
 	for i, v := range cellar.bcellar {
 		if i > 0 {
@@ -19,16 +21,19 @@ func (cellar BeerCellar) PrintCellar(printer Printer) {
 	}
 }
 
+// GetNumberOfCellars gets the number of cellar boxes in the cellar
 func (cellar BeerCellar) GetNumberOfCellars() int {
 	return len(cellar.bcellar)
 }
 
+// Save stores a cellar to disk
 func (cellar BeerCellar) Save() {
 	for _, v := range cellar.bcellar {
 		v.Save()
 	}
 }
 
+// Size gets the size of the cellar
 func (cellar BeerCellar) Size() int {
 	size := 0
 	for _, v := range cellar.bcellar {
@@ -37,24 +42,26 @@ func (cellar BeerCellar) Size() int {
 	return size
 }
 
+// AddBeerToCellar Adds a beer to the cellar
 func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
-	best_cellar := -1
-	best_score := -1
+	bestCellar := -1
+	bestScore := -1
 
 	for i, v := range cellar.bcellar {
-		insert_count := v.ComputeInsertCost(beer)
+		insertCount := v.ComputeInsertCost(beer)
 
-		if insert_count > 0 && (insert_count < best_score || best_score < 0) {
-			best_score = insert_count
-			best_cellar = i
+		if insertCount > 0 && (insertCount < bestScore || bestScore < 0) {
+			bestScore = insertCount
+			bestCellar = i
 		}
 	}
 
-	cellar.bcellar[best_cellar].AddBeer(beer)
+	cellar.bcellar[bestCellar].AddBeer(beer)
 
-	return cellar.bcellar[best_cellar]
+	return cellar.bcellar[bestCellar]
 }
 
+// GetEmptyCellarCount Gets the number of empty cellars
 func (cellar BeerCellar) GetEmptyCellarCount() int {
 	count := 0
 	for _, v := range cellar.bcellar {
@@ -65,6 +72,7 @@ func (cellar BeerCellar) GetEmptyCellarCount() int {
 	return count
 }
 
+// LoadBeerCellar loads a set of beer cellar files
 func LoadBeerCellar(name string) *BeerCellar {
 
 	bc := BeerCellar{
@@ -80,6 +88,7 @@ func LoadBeerCellar(name string) *BeerCellar {
 	return &bc
 }
 
+// NewBeerCellar creates new beer cellar
 func NewBeerCellar(name string) *BeerCellar {
 	bc := BeerCellar{
 		version: "0.1",
@@ -94,28 +103,30 @@ func NewBeerCellar(name string) *BeerCellar {
 	return &bc
 }
 
-func (bc *BeerCellar) GetVersion() string {
-	return bc.version
+// GetVersion gets the version of the cellar code
+func (cellar *BeerCellar) GetVersion() string {
+	return cellar.version
 }
 
-func (bc *BeerCellar) AddBeer(id string, date string) *Cellar {
-	id_num, _ := strconv.Atoi(id)
-	if id_num >= 0 {
-		cellar := bc.AddBeerToCellar(Beer{id: id_num, drink_date: date})
-		return &cellar
+// AddBeer adds the beer to the cellar
+func (cellar *BeerCellar) AddBeer(id string, date string) *Cellar {
+	idNum, _ := strconv.Atoi(id)
+	if idNum >= 0 {
+		cellarBox := cellar.AddBeerToCellar(Beer{id: idNum, drinkDate: date})
+		return &cellarBox
 	}
 
 	return nil
 }
 
-func RunVersion(version bool, cellar *BeerCellar) {
+func runVersion(version bool, cellar *BeerCellar) {
 	if version {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
 	}
 }
 
-func RunAddBeer(add_beer bool, id string, date string, cellar *BeerCellar) {
-	if add_beer {
+func runAddBeer(addBeer bool, id string, date string, cellar *BeerCellar) {
+	if addBeer {
 		box := cellar.AddBeer(id, date)
 		print := &StdOutPrint{}
 		box.PrintCellar(print)
@@ -126,17 +137,17 @@ func main() {
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
 
-	var add_beer bool
+	var addBeer bool
 	var beerid string
-	var drink_date string
-	flag.BoolVar(&add_beer, "add", false, "Adds a beer")
+	var drinkDate string
+	flag.BoolVar(&addBeer, "add", false, "Adds a beer")
 	flag.StringVar(&beerid, "id", "-1", "ID of the beer")
-	flag.StringVar(&drink_date, "date", "", "Date to be drunk by")
+	flag.StringVar(&drinkDate, "date", "", "Date to be drunk by")
 
-	cellar_name := "prod"
+	cellarName := "prod"
 
 	flag.Parse()
-	cellar := NewBeerCellar(cellar_name)
-	RunVersion(version, cellar)
-	RunAddBeer(add_beer, beerid, drink_date, cellar)
+	cellar := NewBeerCellar(cellarName)
+	runVersion(version, cellar)
+	runAddBeer(addBeer, beerid, drinkDate, cellar)
 }

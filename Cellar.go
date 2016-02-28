@@ -7,24 +7,32 @@ import "math"
 import "os"
 import "strconv"
 
+// Printer prints to various places
 type Printer interface {
+	// Println prints a line
 	Println(string)
 }
+
+// StdOutPrint a printer which prints to standard out
 type StdOutPrint struct{}
 
+// Println prints a line to standard out
 func (stdprinter *StdOutPrint) Println(output string) {
 	fmt.Printf("%v\n", output)
 }
 
+// Cellar a single cellar box
 type Cellar struct {
 	name     string
 	contents []Beer
 }
 
+// NewCellar builds a new cellar
 func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0)}
 }
 
+// Save saves the cellar file
 func (cellar *Cellar) Save() {
 	f, err := os.Create(cellar.name)
 
@@ -36,10 +44,11 @@ func (cellar *Cellar) Save() {
 	defer f.Close()
 
 	for _, v := range cellar.contents {
-		fmt.Fprintf(f, "%v~%v\n", v.id, v.drink_date)
+		fmt.Fprintf(f, "%v~%v\n", v.id, v.drinkDate)
 	}
 }
 
+// PrintCellar prints the contents of the cellar using the Printer
 func (cellar *Cellar) PrintCellar(out Printer) {
 	out.Println(cellar.name)
 
@@ -48,6 +57,7 @@ func (cellar *Cellar) PrintCellar(out Printer) {
 	}
 }
 
+// GetNext Removes the next beer from the cellar
 func (cellar *Cellar) GetNext() Beer {
 	beer := cellar.contents[0]
 	cellar.contents = cellar.contents[1:]
@@ -55,53 +65,57 @@ func (cellar *Cellar) GetNext() Beer {
 }
 
 func (cellar *Cellar) getInsertPoint(beer Beer) int {
-	insert_point := -1
+	insertPoint := -1
 	for i := 0; i < len(cellar.contents); i++ {
 		if beer.IsAfter(cellar.contents[i]) {
-			insert_point = i
+			insertPoint = i
 			break
 		}
 	}
 
-	if insert_point == -1 {
-		insert_point = len(cellar.contents)
+	if insertPoint == -1 {
+		insertPoint = len(cellar.contents)
 	}
-	return insert_point
+	return insertPoint
 }
 
+// ComputeInsertCost Determines the cost of inserting beer into the cellar
 func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
 	//Insert cost of an empty cellar should be high
 	if len(cellar.contents) == 0 {
 		return int(math.MaxInt16)
 	}
 
-	insert_point := cellar.getInsertPoint(beer)
+	insertPoint := cellar.getInsertPoint(beer)
 
-	return insert_point
+	return insertPoint
 }
 
+// AddBeer adds a beer to the cellar
 func (cellar *Cellar) AddBeer(beer Beer) {
-	insert_point := cellar.getInsertPoint(beer)
-	before := cellar.contents[:insert_point]
-	after := cellar.contents[insert_point:]
+	insertPoint := cellar.getInsertPoint(beer)
+	before := cellar.contents[:insertPoint]
+	after := cellar.contents[insertPoint:]
 	cellar.contents = append(before, beer)
 	cellar.contents = append(cellar.contents, after...)
 }
 
+// Size Determines the size of the cellar
 func (cellar Cellar) Size() int {
 	return len(cellar.contents)
 }
 
-func BuildCellar(file_name string) *Cellar {
-	file, err := os.Open(file_name)
+// BuildCellar Constructs the cellar for the given fileName
+func BuildCellar(fileName string) *Cellar {
+	file, err := os.Open(fileName)
 	if err != nil {
-		log.Printf("Error opening %q\n", file_name)
+		log.Printf("Error opening %q\n", fileName)
 		return nil
 	}
 
 	defer file.Close()
 
-	cellar := NewCellar(file_name)
+	cellar := NewCellar(fileName)
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
