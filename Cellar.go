@@ -38,13 +38,12 @@ func (cellar *Cellar) Save() {
 
 	if err != nil {
 		log.Printf("Error opening file %v\n", err)
-		return
 	}
 
 	defer f.Close()
 
 	for _, v := range cellar.contents {
-		fmt.Fprintf(f, "%v~%v\n", v.id, v.drinkDate)
+		fmt.Fprintf(f, "%v~%v~%v\n", v.id, v.drinkDate, v.size)
 	}
 }
 
@@ -119,10 +118,13 @@ func BuildCellar(fileName string) *Cellar {
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		beer, err := NewBeer(scanner.Text())
+		line := scanner.Text()
+		beer, err := NewBeer(line)
 
 		if err == nil {
 			cellar.AddBeer(beer)
+		} else {
+			log.Printf("Unable to parse beer: %v -> %v\n", line, err)
 		}
 	}
 

@@ -6,7 +6,7 @@ func TestForClobbering(t *testing.T) {
 	mine1 := NewBeerCellar("cellar1")
 	mine2 := NewBeerCellar("cellar2")
 
-	mine1.AddBeer("1234", "01/01/16")
+	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.Save()
 
 	t1 := LoadBeerCellar("cellar1")
@@ -31,7 +31,7 @@ func TestGetVersion(t *testing.T) {
 
 func TestAddBeer(t *testing.T) {
 	mine := NewBeerCellar("test")
-	mine.AddBeer("1234", "01/01/16")
+	mine.AddBeer("1234", "01/01/16", "bomber")
 	mine.Save()
 
 	mine2 := LoadBeerCellar("test")
@@ -42,7 +42,7 @@ func TestAddBeer(t *testing.T) {
 
 func TestAddNoBeer(t *testing.T) {
 	mine := NewBeerCellar("test")
-	mine.AddBeer("-1", "01/01/16")
+	mine.AddBeer("-1", "01/01/16", "bomber")
 	mine.Save()
 
 	mine2 := LoadBeerCellar("test")
@@ -60,7 +60,7 @@ func TestRunVersion(t *testing.T) {
 }
 
 func TestRunAddBeer(t *testing.T) {
-	runAddBeer(true, "1234", "01/02/16", NewBeerCellar("test"))
+	runAddBeer(true, "1234", "01/02/16", "bomber", NewBeerCellar("test"))
 }
 
 func TestGetNumberOfCellars(t *testing.T) {
@@ -72,9 +72,9 @@ func TestGetNumberOfCellars(t *testing.T) {
 
 func TestAddToCellar(t *testing.T) {
 	cellar := NewBeerCellar("test")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, _ := NewBeer("1234~01/03/16~bomber")
 
 	cellar.AddBeerToCellar(beer1)
 	cellar.AddBeerToCellar(beer2)
@@ -87,9 +87,9 @@ func TestAddToCellar(t *testing.T) {
 
 func TestPrintOutBeerCellar(t *testing.T) {
 	cellar := NewBeerCellar("test")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, _ := NewBeer("1234~01/03/16~bomber")
 
 	cellar.AddBeerToCellar(beer1)
 	cellar.AddBeerToCellar(beer2)
@@ -105,9 +105,13 @@ func TestPrintOutBeerCellar(t *testing.T) {
 
 func TestSaveBeerCellar(t *testing.T) {
 	cellar := NewBeerCellar("test")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, err := NewBeer("1234~01/03/16~bomber")
+
+	if err != nil {
+		t.Errorf("Parse fail %v\n", err)
+	}
 
 	cellar.AddBeerToCellar(beer1)
 	cellar.AddBeerToCellar(beer2)
