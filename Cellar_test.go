@@ -44,6 +44,23 @@ func TestBuildCellarFileOpenFail(t *testing.T) {
 	}
 }
 
+func TestComputeMixSizes(t *testing.T) {
+	cellar := NewCellar("testing_cellar")
+	beer1, err1 := NewBeer("1234~01/01/16~bomber")
+	beer2, err2 := NewBeer("1235~01/01/16~small")
+
+	if err1 != nil || err2 != nil {
+		t.Errorf("Parse issue %v,%v\n", err1, err2)
+	}
+
+	cellar.AddBeer(beer1)
+
+	cost := cellar.ComputeInsertCost(beer2)
+	if cost >= 0 {
+		t.Errorf("Beer sizes have been mixed: %v\n", cost)
+	}
+}
+
 func TestComputeEmptyCellarCost(t *testing.T) {
 	cellar := NewCellar("test_cellar")
 	beer, _ := NewBeer("1234~01/01/16")
