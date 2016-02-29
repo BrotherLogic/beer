@@ -109,10 +109,10 @@ func (cellar *BeerCellar) GetVersion() string {
 }
 
 // AddBeer adds the beer to the cellar
-func (cellar *BeerCellar) AddBeer(id string, date string) *Cellar {
+func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
 	idNum, _ := strconv.Atoi(id)
 	if idNum >= 0 {
-		cellarBox := cellar.AddBeerToCellar(Beer{id: idNum, drinkDate: date})
+		cellarBox := cellar.AddBeerToCellar(Beer{id: idNum, drinkDate: date, size: size})
 		return &cellarBox
 	}
 
@@ -125,9 +125,9 @@ func runVersion(version bool, cellar *BeerCellar) {
 	}
 }
 
-func runAddBeer(addBeer bool, id string, date string, cellar *BeerCellar) {
+func runAddBeer(addBeer bool, id string, date string, size string, cellar *BeerCellar) {
 	if addBeer {
-		box := cellar.AddBeer(id, date)
+		box := cellar.AddBeer(id, date, size)
 		print := &StdOutPrint{}
 		box.PrintCellar(print)
 	}
@@ -140,14 +140,16 @@ func main() {
 	var addBeer bool
 	var beerid string
 	var drinkDate string
+	var size string
 	flag.BoolVar(&addBeer, "add", false, "Adds a beer")
 	flag.StringVar(&beerid, "id", "-1", "ID of the beer")
 	flag.StringVar(&drinkDate, "date", "", "Date to be drunk by")
+	flag.StringVar(&size, "size", "", "Size of bottle")
 
 	cellarName := "prod"
 
 	flag.Parse()
 	cellar := NewBeerCellar(cellarName)
 	runVersion(version, cellar)
-	runAddBeer(addBeer, beerid, drinkDate, cellar)
+	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
 }

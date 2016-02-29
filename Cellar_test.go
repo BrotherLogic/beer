@@ -1,5 +1,6 @@
 package main
 
+import "log"
 import "math"
 import "testing"
 
@@ -29,6 +30,13 @@ func TestBuildCellar(t *testing.T) {
 	}
 }
 
+func TestBuildCellarWithBadSize(t *testing.T) {
+	cellar := BuildCellar("testdata/badsize.cellar")
+	if cellar.Size() != 2 {
+		t.Errorf("Cellar has %d entries, should have 2\n", cellar.Size())
+	}
+}
+
 func TestBuildCellarFileOpenFail(t *testing.T) {
 	cellar := BuildCellar("testdata/makdeupfilename.cellar")
 	if cellar != nil {
@@ -49,8 +57,8 @@ func TestComputeEmptyCellarCost(t *testing.T) {
 
 func TestComputeBackCost(t *testing.T) {
 	cellar := NewCellar("test_cellar")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
 
 	cellar.AddBeer(beer1)
 	ic := cellar.ComputeInsertCost(beer2)
@@ -62,9 +70,9 @@ func TestComputeBackCost(t *testing.T) {
 
 func TestComputeMiddleCost(t *testing.T) {
 	cellar := NewCellar("test_cellar")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, _ := NewBeer("1234~01/03/16~bomber")
 
 	cellar.AddBeer(beer1)
 	cellar.AddBeer(beer3)
@@ -77,9 +85,9 @@ func TestComputeMiddleCost(t *testing.T) {
 
 func TestCellarInsert(t *testing.T) {
 	cellar := NewCellar("test_cellar")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, _ := NewBeer("1234~01/03/16~bomber")
 
 	cellar.AddBeer(beer1)
 	cellar.AddBeer(beer2)
@@ -120,13 +128,19 @@ func TestPrintOutCellar(t *testing.T) {
 
 func TestSaveCellar(t *testing.T) {
 	cellar := NewCellar("test_cellar")
-	beer1, _ := NewBeer("1234~01/01/16")
-	beer2, _ := NewBeer("1234~01/02/16")
-	beer3, _ := NewBeer("1234~01/03/16")
+	beer1, err1 := NewBeer("1234~01/01/16~bomber")
+	beer2, err2 := NewBeer("1234~01/02/16~bomber")
+	beer3, err3 := NewBeer("1234~01/03/16~bomber")
+
+	if err1 != nil || err2 != nil || err3 != nil {
+		t.Errorf("Problems loading beers: %v, %v, %v\n", err1, err2, err3)
+	}
 
 	cellar.AddBeer(beer1)
 	cellar.AddBeer(beer2)
 	cellar.AddBeer(beer3)
+
+	log.Printf("Pre save size: %v\n", cellar.Size())
 
 	cellar.Save()
 
