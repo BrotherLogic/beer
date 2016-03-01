@@ -44,6 +44,46 @@ func TestBuildCellarFileOpenFail(t *testing.T) {
 	}
 }
 
+func TestCellarOverflowSmall(t *testing.T) {
+	cellar := NewCellar("testing_cellar")
+
+	//Should be able to add 30 small bottles before insert cost is < 0
+	for i := 0; i < 30; i++ {
+		beer1, _ := NewBeer("1234~01/01/15~small")
+		cost := cellar.ComputeInsertCost(beer1)
+		if cost < 0 {
+			t.Errorf("Inserting %v into %v is too costly\n", beer1, cellar)
+		}
+		cellar.AddBeer(beer1)
+	}
+
+	beer2, _ := NewBeer("1234~01/01/15~small")
+	cost := cellar.ComputeInsertCost(beer2)
+	if cost >= 0 {
+		t.Errorf("Inserting %v into %v is not prohibited (%v)\n", beer2, cellar, cost)
+	}
+}
+
+func TestCellarOverflowBomber(t *testing.T) {
+	cellar := NewCellar("testing_cellar")
+
+	//Should be able to add 30 small bottles before insert cost is < 0
+	for i := 0; i < 20; i++ {
+		beer1, _ := NewBeer("1234~01/01/15~bomber")
+		cost := cellar.ComputeInsertCost(beer1)
+		if cost < 0 {
+			t.Errorf("Inserting %v into %v is too costly\n", beer1, cellar)
+		}
+		cellar.AddBeer(beer1)
+	}
+
+	beer2, _ := NewBeer("1234~01/01/15~bomber")
+	cost := cellar.ComputeInsertCost(beer2)
+	if cost >= 0 {
+		t.Errorf("Inserting %v into %v is not prohibited (%v)\n", beer2, cellar, cost)
+	}
+}
+
 func TestComputeMixSizes(t *testing.T) {
 	cellar := NewCellar("testing_cellar")
 	beer1, err1 := NewBeer("1234~01/01/16~bomber")

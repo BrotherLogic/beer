@@ -90,6 +90,13 @@ func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
 		return -1
 	}
 
+	// Ensure that cellars don't overflow
+	if cellar.contents[0].size == "small" && len(cellar.contents) >= 30 {
+		return -1
+	} else if cellar.contents[0].size == "bomber" && len(cellar.contents) >= 20 {
+		return -1
+	}
+
 	insertPoint := cellar.getInsertPoint(beer)
 
 	return insertPoint
