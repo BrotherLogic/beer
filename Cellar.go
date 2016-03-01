@@ -85,6 +85,11 @@ func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
 		return int(math.MaxInt16)
 	}
 
+	//Don't mix sizes
+	if cellar.contents[0].size != beer.size {
+		return -1
+	}
+
 	insertPoint := cellar.getInsertPoint(beer)
 
 	return insertPoint
