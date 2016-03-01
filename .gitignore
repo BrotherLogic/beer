@@ -31,3 +31,4 @@ test_cellar
 cellar[1-8]
 *.cellar
 src/
+*.metadata
