@@ -63,6 +63,10 @@ func TestRunAddBeer(t *testing.T) {
 	runAddBeer(true, "1234", "01/02/16", "bomber", NewBeerCellar("test"))
 }
 
+func TestRunPrintCellar(t *testing.T) {
+	runPrintCellar(true, NewBeerCellar("test"))
+}
+
 func TestGetNumberOfCellars(t *testing.T) {
 	bc := NewBeerCellar("test")
 	if bc.GetNumberOfCellars() != 8 {
