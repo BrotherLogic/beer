@@ -133,6 +133,12 @@ func runAddBeer(addBeer bool, id string, date string, size string, cellar *BeerC
 	}
 }
 
+func runPrintCellar(printCellar bool, cellar *BeerCellar) {
+	if printCellar {
+		cellar.PrintCellar(&StdOutPrint{})
+	}
+}
+
 func main() {
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
@@ -146,10 +152,14 @@ func main() {
 	flag.StringVar(&drinkDate, "date", "", "Date to be drunk by")
 	flag.StringVar(&size, "size", "", "Size of bottle")
 
+	var printCellar bool
+	flag.BoolVar(&printCellar, "print", false, "Prints the cellar")
+
 	cellarName := "prod"
 
 	flag.Parse()
 	cellar := NewBeerCellar(cellarName)
 	runVersion(version, cellar)
 	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
+	runPrintCellar(printCellar, cellar)
 }
