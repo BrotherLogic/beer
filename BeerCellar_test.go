@@ -9,15 +9,26 @@ func TestForClobbering(t *testing.T) {
 	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.Save()
 
-	t1 := LoadBeerCellar("cellar1")
+	t1, _ := LoadBeerCellar("cellar1")
 	if t1.Size() != 1 {
 		t.Errorf("Cellar is missized on first load: %v\n", t1.Size())
 	}
 
 	mine2.Save()
-	t2 := LoadBeerCellar("cellar1")
+	t2, _ := LoadBeerCellar("cellar1")
 	if t2.Size() != 1 {
 		t.Errorf("Cellar is missized on second load: %v\n", t2.Size())
+	}
+}
+
+func TestGetSyncTime(t *testing.T) {
+	mine := NewBeerCellar("testing")
+	mine.syncTime = "01/01/16"
+	mine.Save()
+
+	mine2, _ := LoadBeerCellar("testing")
+	if mine2.syncTime != "01/01/16" {
+		t.Errorf("BeerCellar is not saving the sync date\n")
 	}
 }
 
@@ -34,7 +45,7 @@ func TestAddBeer(t *testing.T) {
 	mine.AddBeer("1234", "01/01/16", "bomber")
 	mine.Save()
 
-	mine2 := LoadBeerCellar("test")
+	mine2, _ := LoadBeerCellar("test")
 	if mine2.Size() != mine.Size() && mine2.Size() == 1 {
 		t.Errorf("Size on reload is incorrect %v vs %v\n", mine.Size(), mine2.Size())
 	}
@@ -45,7 +56,7 @@ func TestAddNoBeer(t *testing.T) {
 	mine.AddBeer("-1", "01/01/16", "bomber")
 	mine.Save()
 
-	mine2 := LoadBeerCellar("test")
+	mine2, _ := LoadBeerCellar("test")
 	if mine2.Size() != 0 {
 		t.Errorf("Error on adding no beer - %v but %v\n", mine.Size(), mine2.Size())
 	}
@@ -123,8 +134,20 @@ func TestSaveBeerCellar(t *testing.T) {
 
 	cellar.Save()
 
-	cellar2 := LoadBeerCellar("test")
+	cellar2, _ := LoadBeerCellar("test")
 	if cellar2.Size() != cellar.Size() {
 		t.Errorf("Mismatched sizes %v and %v\n", cellar.Size(), cellar2.Size())
+	}
+}
+
+func TestSaveBadBeerCellar(t *testing.T) {
+	cellar := NewBeerCellar("madeupdirectory/blah")
+	cellar.Save()
+}
+
+func TestLoadBadBeerCellar(t *testing.T) {
+	_, err := LoadBeerCellar("madeupdirectory/blah")
+	if err == nil {
+		t.Errorf("No Error on opening bad cellar\n")
 	}
 }

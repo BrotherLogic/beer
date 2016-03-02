@@ -1,14 +1,20 @@
 package main
 
+import "bufio"
+import "errors"
 import "flag"
 import "fmt"
+import "log"
+import "os"
 import "strconv"
+import "strings"
 
 // BeerCellar the overall beer cellar
 type BeerCellar struct {
-	version string
-	name    string
-	bcellar []Cellar
+	version  string
+	name     string
+	syncTime string
+	bcellar  []Cellar
 }
 
 // PrintCellar prints out the cellar
@@ -31,6 +37,17 @@ func (cellar BeerCellar) Save() {
 	for _, v := range cellar.bcellar {
 		v.Save()
 	}
+
+	//Also save the metadata
+	fileName := cellar.name + ".metadata"
+	f, err := os.Create(fileName)
+	if err != nil {
+		log.Printf("Error saving metadata file: %v\n", fileName)
+		return
+	}
+
+	defer f.Close()
+	fmt.Fprintf(f, "%v~%v~%v\n", cellar.version, cellar.name, cellar.syncTime)
 }
 
 // Size gets the size of the cellar
@@ -73,7 +90,7 @@ func (cellar BeerCellar) GetEmptyCellarCount() int {
 }
 
 // LoadBeerCellar loads a set of beer cellar files
-func LoadBeerCellar(name string) *BeerCellar {
+func LoadBeerCellar(name string) (*BeerCellar, error) {
 
 	bc := BeerCellar{
 		version: "0.1",
@@ -82,10 +99,33 @@ func LoadBeerCellar(name string) *BeerCellar {
 	}
 
 	for i := 1; i < 9; i++ {
-		bc.bcellar = append(bc.bcellar, *BuildCellar(name + strconv.Itoa(i) + ".cellar"))
+		tcellar := BuildCellar(name + strconv.Itoa(i) + ".cellar")
+		if tcellar != nil {
+			bc.bcellar = append(bc.bcellar, *tcellar)
+		}
 	}
 
-	return &bc
+	// Load in the metadata
+	fileName := name + ".metadata"
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Printf("Error opening file: %v - %v\n", fileName, err)
+		return &bc, errors.New("Cannot open metadata file")
+	}
+
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		elems := strings.Split(line, "~")
+		if len(elems) == 3 {
+			bc.version = elems[0]
+			bc.name = elems[1]
+			bc.syncTime = elems[2]
+		}
+	}
+
+	return &bc, nil
 }
 
 // NewBeerCellar creates new beer cellar
