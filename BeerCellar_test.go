@@ -1,5 +1,6 @@
 package main
 
+import "log"
 import "testing"
 
 func TestForClobbering(t *testing.T) {
@@ -78,6 +79,16 @@ func TestRunPrintCellar(t *testing.T) {
 	runPrintCellar(true, NewBeerCellar("test"))
 }
 
+func TestRunListBeers(t *testing.T) {
+	runListBeers(true, 5, 5, NewBeerCellar("test"))
+}
+
+func TestMin(t *testing.T) {
+	if Min(3, 2) == 3 || Min(2, 3) == 3 {
+		t.Errorf("Min is not returning the min\n")
+	}
+}
+
 func TestGetNumberOfCellars(t *testing.T) {
 	bc := NewBeerCellar("test")
 	if bc.GetNumberOfCellars() != 8 {
@@ -150,4 +161,14 @@ func TestLoadBadBeerCellar(t *testing.T) {
 	if err == nil {
 		t.Errorf("No Error on opening bad cellar\n")
 	}
+}
+
+func TestPrintBeers(t *testing.T) {
+     log.Printf("Starting Here\n")
+     cellar := NewBeerCellar("test")
+     beer1, _ := NewBeer("1234~12/05/12~bomber")
+     beer2, _ := NewBeer("1235~12/05/12~small")
+     cellar.AddBeerToCellar(beer1)
+     cellar.AddBeerToCellar(beer2)
+     cellar.PrintBeers(5,5)
 }

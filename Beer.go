@@ -12,6 +12,13 @@ type Beer struct {
 	size      string
 }
 
+// ByDate used to sort beer
+type ByDate []Beer
+
+func (a ByDate) Len() int           { return len(a) }
+func (a ByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByDate) Less(i, j int) bool { return a[i].IsAfter(a[j]) }
+
 // IsAfter Should beer1 be drunk after beer2
 func (beer1 Beer) IsAfter(beer2 Beer) bool {
 	time1, _ := time.Parse("02/01/06", beer1.drinkDate)
