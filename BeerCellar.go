@@ -144,6 +144,15 @@ func NewBeerCellar(name string) *BeerCellar {
 	return &bc
 }
 
+// LoadOrNewBeerCellar loads or creates a new BeerCellar
+func LoadOrNewBeerCellar(name string) (*BeerCellar, error) {
+     if _, err := os.Stat(name + ".metadata"); err == nil {
+     	return LoadBeerCellar(name)
+     }
+
+     return NewBeerCellar(name), nil
+}
+
 // GetVersion gets the version of the cellar code
 func (cellar *BeerCellar) GetVersion() string {
 	return cellar.version
@@ -247,9 +256,10 @@ func main() {
 	cellarName := "prod"
 
 	flag.Parse()
-	cellar := NewBeerCellar(cellarName)
+	cellar,_ := LoadOrNewBeerCellar(cellarName)
 	runVersion(version, cellar)
 	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
 	runPrintCellar(printCellar, cellar)
 	runListBeers(listBeers, numBombers, numSmall, cellar)
+	cellar.Save()
 }

@@ -3,6 +3,17 @@ package main
 import "log"
 import "testing"
 
+func TestSaveAndReload(t *testing.T) {
+     mine1,_ := LoadOrNewBeerCellar("cellar1")
+     mine1.AddBeer("1234", "01/01/16", "bomber")
+     mine1.Save()
+
+     mine2,_ := LoadOrNewBeerCellar("cellar1")
+     if mine2.Size() == 0 {
+     	t.Errorf("Cellar is not being reloaded correctly\n")
+     }
+}
+
 func TestForClobbering(t *testing.T) {
 	mine1 := NewBeerCellar("cellar1")
 	mine2 := NewBeerCellar("cellar2")
