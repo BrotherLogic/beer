@@ -5,7 +5,7 @@ import "testing"
 
 func TestSaveAndReload(t *testing.T) {
      mine1,_ := LoadOrNewBeerCellar("cellar1")
-     mine1.AddBeer("1234", "01/01/16", "bomber")
+     runAddBeer(true,"1234","01/01/16","bomber", mine1)
      mine1.Save()
 
      mine2,_ := LoadOrNewBeerCellar("cellar1")
