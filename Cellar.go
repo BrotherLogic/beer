@@ -5,6 +5,7 @@ import "fmt"
 import "log"
 import "math"
 import "os"
+import "sort"
 import "strconv"
 
 // Printer prints to various places
@@ -114,6 +115,20 @@ func (cellar *Cellar) AddBeer(beer Beer) {
 // Size Determines the size of the cellar
 func (cellar Cellar) Size() int {
 	return len(cellar.contents)
+}
+
+// MergeCellars combines N cellars into a list of beers
+func MergeCellars(bsize string, cellars ...Cellar) []Beer {
+	var retArr []Beer
+	for _, cellar := range cellars {
+		if cellar.Size() > 0 && cellar.contents[0].size == bsize {
+			retArr = append(retArr, cellar.contents...)
+		}
+	}
+
+	sort.Sort(ByDate(retArr))
+
+	return retArr
 }
 
 // BuildCellar Constructs the cellar for the given fileName

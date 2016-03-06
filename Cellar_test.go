@@ -16,6 +16,30 @@ func (lineCounter LineCounterPrinter) GetCount() int {
 	return lineCounter.lcount
 }
 
+func TestMergeCellar(t *testing.T) {
+	cellar1 := NewCellar("cellar1")
+	cellar2 := NewCellar("cellar2")
+	cellar3 := NewCellar("cellar3")
+
+	beer1, _ := NewBeer("1234~10/01/15~bomber")
+	cellar1.AddBeer(beer1)
+	beer2, _ := NewBeer("1235~01/01/15~bomber")
+	cellar2.AddBeer(beer2)
+	beer3, _ := NewBeer("1236~05/01/15~bomber")
+	cellar3.AddBeer(beer3)
+
+	merged := MergeCellars("bomber", cellar1, cellar2, cellar3)
+	merged2 := MergeCellars("small", cellar1, cellar2, cellar3)
+
+	if merged[0].id != 1235 {
+		t.Errorf("Merged list is ordered incorrectly %v\n", merged[0])
+	}
+
+	if len(merged2) != 0 {
+		t.Errorf("Merged small list is non-empty: %v\n", merged2)
+	}
+}
+
 func TestPrint(t *testing.T) {
 	printer := StdOutPrint{}
 

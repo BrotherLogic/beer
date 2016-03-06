@@ -75,6 +75,7 @@ func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
 
 	cellar.bcellar[bestCellar].AddBeer(beer)
 
+	log.Printf("Adding beer: %v\n", cellar.bcellar)
 	return cellar.bcellar[bestCellar]
 }
 
@@ -159,6 +160,41 @@ func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
 	return nil
 }
 
+// Min returns the min of the parameters
+func Min(a int, b int) int {
+	if a > b {
+		return b
+	}
+
+	return a
+}
+
+// ListBeers lists the cellared beers of a given type
+func (cellar *BeerCellar) ListBeers(num int, btype string) []Beer {
+     log.Printf("Cellar looks like %v\n", cellar.bcellar)
+	retList := MergeCellars(btype, cellar.bcellar...)
+	return retList[:Min(len(retList), num)]
+}
+
+// PrintBeers prints out the beers of a given type
+func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
+	bombers := cellar.ListBeers(numBombers, "bomber")
+	smalls := cellar.ListBeers(numSmall, "small")
+
+	fmt.Printf("Bombers\n")
+	fmt.Printf("-------\n")
+	for _, v := range bombers {
+		fmt.Printf("%v\n", v)
+	}
+
+	fmt.Printf("Smalls\n")
+	fmt.Printf("-------\n")
+	for _, v := range smalls {
+		fmt.Printf("%v\n", v)
+	}
+
+}
+
 func runVersion(version bool, cellar *BeerCellar) {
 	if version {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
@@ -179,6 +215,12 @@ func runPrintCellar(printCellar bool, cellar *BeerCellar) {
 	}
 }
 
+func runListBeers(listBeers bool, numBombers int, numSmall int, cellar *BeerCellar) {
+	if listBeers {
+		cellar.PrintBeers(numBombers, numSmall)
+	}
+}
+
 func main() {
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
@@ -195,6 +237,13 @@ func main() {
 	var printCellar bool
 	flag.BoolVar(&printCellar, "print", false, "Prints the cellar")
 
+	var listBeers bool
+	var numBombers int
+	var numSmall int
+	flag.BoolVar(&listBeers, "list", false, "Lists beer to be drunk")
+	flag.IntVar(&numBombers, "bombers", 0, "Number of bombers to list from the cellar")
+	flag.IntVar(&numSmall, "small", 0, "Number of small beers to list from the cellar")
+
 	cellarName := "prod"
 
 	flag.Parse()
@@ -202,4 +251,5 @@ func main() {
 	runVersion(version, cellar)
 	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
 	runPrintCellar(printCellar, cellar)
+	runListBeers(listBeers, numBombers, numSmall, cellar)
 }
