@@ -8,13 +8,27 @@ import "log"
 import "os"
 import "strconv"
 import "strings"
+import "time"
 
 // BeerCellar the overall beer cellar
 type BeerCellar struct {
 	version  string
 	name     string
 	syncTime string
+	untappdKey string
+	untappdSecret string
 	bcellar  []Cellar
+}
+
+// SetUntappd sets the untappd key, secret pair
+func (cellar *BeerCellar) SetUntappd(key string, secret string) {
+     cellar.untappdKey = key
+     cellar.untappdSecret = secret
+}
+
+// GetUntappd Gets the untappd key,secret pair
+func (cellar BeerCellar) GetUntappd() (string, string) {
+     return cellar.untappdKey, cellar.untappdSecret
 }
 
 // PrintCellar prints out the cellar
@@ -47,7 +61,7 @@ func (cellar BeerCellar) Save() {
 	}
 
 	defer f.Close()
-	fmt.Fprintf(f, "%v~%v~%v\n", cellar.version, cellar.name, cellar.syncTime)
+	fmt.Fprintf(f, "%v~%v~%v~%v~%v\n", cellar.version, cellar.name, cellar.syncTime, cellar.untappdKey, cellar.untappdSecret)
 }
 
 // Size gets the size of the cellar
@@ -119,10 +133,12 @@ func LoadBeerCellar(name string) (*BeerCellar, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		elems := strings.Split(line, "~")
-		if len(elems) == 3 {
+		if len(elems) == 5 {
 			bc.version = elems[0]
 			bc.name = elems[1]
 			bc.syncTime = elems[2]
+			bc.untappdKey = elems[3]
+			bc.untappdSecret = elems[4]
 		}
 	}
 
@@ -134,6 +150,7 @@ func NewBeerCellar(name string) *BeerCellar {
 	bc := BeerCellar{
 		version: "0.1",
 		name:    name,
+		syncTime: time.Now().Format("02/01/06"),
 		bcellar: make([]Cellar, 0),
 	}
 
