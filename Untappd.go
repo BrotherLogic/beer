@@ -91,6 +91,12 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 		return "Failed to unmarshal"
 	}
 
+	meta := mapper["meta"].(map[string]interface{})
+	metaCode := int(meta["code"].(float64))
+	if metaCode != 200 {
+	   return meta["error_detail"].(string)
+	}
+
 	response := mapper["response"].(map[string]interface{})
 	beer := response["beer"].(map[string]interface{})
 	brewery := beer["brewery"].(map[string]interface{})
@@ -125,5 +131,6 @@ func GetBeerName(id int) string {
 	var converter responseConverter = mainConverter{}
 	var unmarshaller unmarshaller = mainUnmarshaller{}
 	text := getBeerPage(fetcher, converter, id)
+
 	return convertPageToName(text, unmarshaller)
 }
