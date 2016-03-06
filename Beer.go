@@ -20,11 +20,16 @@ func (a ByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a ByDate) Less(i, j int) bool { return a[i].IsAfter(a[j]) }
 
 // IsAfter Should beer1 be drunk after beer2
-func (beer1 Beer) IsAfter(beer2 Beer) bool {
-	time1, _ := time.Parse("02/01/06", beer1.drinkDate)
+func (beer Beer) IsAfter(beer2 Beer) bool {
+	time1, _ := time.Parse("02/01/06", beer.drinkDate)
 	time2, _ := time.Parse("02/01/06", beer2.drinkDate)
 
 	return time1.Before(time2)
+}
+
+// Name The name of the beer
+func (beer Beer) Name() string {
+     return GetBeerName(beer.id)
 }
 
 // NewBeer Builds a new beer

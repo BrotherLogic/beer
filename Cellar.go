@@ -6,7 +6,6 @@ import "log"
 import "math"
 import "os"
 import "sort"
-import "strconv"
 
 // Printer prints to various places
 type Printer interface {
@@ -53,7 +52,7 @@ func (cellar *Cellar) PrintCellar(out Printer) {
 	out.Println(cellar.name)
 
 	for _, v := range cellar.contents {
-		out.Println("BeerName " + strconv.Itoa(v.id))
+		out.Println(v.Name())
 	}
 }
 
