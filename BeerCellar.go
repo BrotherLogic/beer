@@ -81,15 +81,15 @@ func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
 	for i, v := range cellar.bcellar {
 		insertCount := v.ComputeInsertCost(beer)
 
-		if insertCount > 0 && (insertCount < bestScore || bestScore < 0) {
+		log.Printf("Adding beer to cellar %v: %v\n", i, insertCount)
+
+		if insertCount >= 0 && (insertCount < bestScore || bestScore < 0) {
 			bestScore = insertCount
 			bestCellar = i
 		}
 	}
 
 	cellar.bcellar[bestCellar].AddBeer(beer)
-
-	log.Printf("Adding beer: %v\n", cellar.bcellar)
 	return cellar.bcellar[bestCellar]
 }
 
