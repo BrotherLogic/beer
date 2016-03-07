@@ -3,6 +3,16 @@ package main
 import "log"
 import "testing"
 
+func TestAddToCellars(t *testing.T) {
+     mine1 := NewBeerCellar("testaddcellar")
+     runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
+     runAddBeer(true, "1234", "01/01.15", "bomber", mine1)
+
+     if mine1.GetEmptyCellarCount() != 7 {
+     	t.Errorf("Cellar is not balanced: %v\n", mine1)
+     }
+}
+
 func TestSaveAndReload(t *testing.T) {
      mine1,_ := LoadOrNewBeerCellar("cellar1")
      runAddBeer(true,"1234","01/01/16","bomber", mine1)
