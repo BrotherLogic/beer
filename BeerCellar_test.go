@@ -82,6 +82,10 @@ func TestRunVersion(t *testing.T) {
 	runVersion(true, NewBeerCellar("test"))
 }
 
+func TestRunSaveUntappd(t *testing.T) {
+     runSaveUntappd(true, "testkey", "testsecret", NewBeerCellar("untappdtest"))
+}
+
 func TestRunAddBeer(t *testing.T) {
 	runAddBeer(true, "1234", "01/02/16", "bomber", NewBeerCellar("test"))
 }
