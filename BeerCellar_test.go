@@ -183,3 +183,16 @@ func TestPrintBeers(t *testing.T) {
      cellar.AddBeerToCellar(beer2)
      cellar.PrintBeers(5,5)
 }
+
+func TestGetUntappdKeys(t *testing.T) {
+     cellar := NewBeerCellar("uttest")
+     cellar.SetUntappd("testkey", "testsecret")
+     cellar.Save()
+
+     cellar2, _ := LoadOrNewBeerCellar("uttest")
+
+     key, secret := cellar2.GetUntappd()
+     if key != "testkey" || secret != "testsecret" {
+     	t.Errorf("Keys have come back incorrectly: %v and %v\n", key, secret)
+     }
+}
