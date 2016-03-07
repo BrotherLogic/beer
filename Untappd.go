@@ -35,7 +35,6 @@ type httpResponseFetcher interface {
 type mainFetcher struct{}
 
 func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
-	log.Printf("Retrieving %q\n", url)
 	return http.Get(url)
 }
 
