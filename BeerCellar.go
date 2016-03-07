@@ -247,6 +247,23 @@ func runListBeers(listBeers bool, numBombers int, numSmall int, cellar *BeerCell
 	}
 }
 
+func runSaveUntappd(saveUntappd bool, key string, secret string, cellar *BeerCellar) {
+     if saveUntappd {
+     	cellar.SetUntappd(key, secret)
+	untappdKey = key
+	untappdSecret = secret
+     } else {
+       if cellar.untappdKey == "" {
+       	  //Set from environment variables
+	  untappdKey = os.Getenv("CLIENTID")
+	  untappdSecret = os.Getenv("CLIENTSECRET")
+       } else {
+       	 untappdKey = cellar.untappdKey
+	 untappdSecret = cellar.untappdSecret
+       }
+     }
+}
+
 func main() {
 	var version bool
 	flag.BoolVar(&version, "version", false, "Prints version")
@@ -270,10 +287,18 @@ func main() {
 	flag.IntVar(&numBombers, "bombers", 0, "Number of bombers to list from the cellar")
 	flag.IntVar(&numSmall, "small", 0, "Number of small beers to list from the cellar")
 
+	var saveUntappd bool
+	var key string
+	var secret string
+	flag.BoolVar(&saveUntappd, "untappd", false, "Settings for untappd")
+	flag.StringVar(&key, "key", "", "Key for untappd")
+	flag.StringVar(&secret, "secret", "", "Secret for untappd")
+
 	cellarName := "prod"
 
 	flag.Parse()
 	cellar,_ := LoadOrNewBeerCellar(cellarName)
+	runSaveUntappd(saveUntappd, key, secret, cellar)
 	runVersion(version, cellar)
 	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
 	runPrintCellar(printCellar, cellar)

@@ -2,6 +2,7 @@ package main
 
 import "errors"
 import "net/http"
+import "os"
 import "strings"
 import "testing"
 
@@ -33,6 +34,8 @@ func (fetcher stubFailFetcher) Fetch(url string) (*http.Response, error) {
 }
 
 func TestGetBeerName(t *testing.T) {
+     untappdKey = os.Getenv("CLIENTID")
+     untappdSecret = os.Getenv("CLIENTSECRET")
 	beerName := GetBeerName(7936)
 	if beerName != "Firestone Walker Brewing Company - Parabola" {
 		t.Errorf("Beer name %q is not firestone, parabola\n", beerName)
@@ -40,6 +43,8 @@ func TestGetBeerName(t *testing.T) {
 }
 
 func TestGetBeerPage(t *testing.T) {
+     untappdKey = os.Getenv("CLIENTID")
+     untappdSecret = os.Getenv("CLIENTSECRET")
 	var fetcher = mainFetcher{}
 	var converter = mainConverter{}
 	beerPage := getBeerPage(fetcher, converter, 7936)

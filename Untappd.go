@@ -4,9 +4,11 @@ import "encoding/json"
 import "log"
 import "net/http"
 import "io/ioutil"
-import "os"
 import "strconv"
 import "strings"
+
+var untappdKey string
+var untappdSecret string
 
 type unmarshaller interface {
 	Unmarshal([]byte, *map[string]interface{}) error
@@ -40,8 +42,8 @@ func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
 func getBeerPage(fetcher httpResponseFetcher, converter responseConverter, id int) string {
 	url := "https://api.untappd.com/v4/beer/info/BID?client_id=CLIENTID&client_secret=CLIENTSECRET&compact=true"
 	url = strings.Replace(url, "BID", strconv.Itoa(id), 1)
-	url = strings.Replace(url, "CLIENTID", os.Getenv("CLIENTID"), 1)
-	url = strings.Replace(url, "CLIENTSECRET", os.Getenv("CLIENTSECRET"), 1)
+	url = strings.Replace(url, "CLIENTID", untappdKey, 1)
+	url = strings.Replace(url, "CLIENTSECRET", untappdSecret, 1)
 
 	response, err := fetcher.Fetch(url)
 
@@ -62,8 +64,8 @@ func getBeerPage(fetcher httpResponseFetcher, converter responseConverter, id in
 func getVenuePage(fetcher httpResponseFetcher, converter responseConverter, id int) string {
 	url := "https://api.untappd.com/v4/venue/info/VID?client_id=CLIENTID&client_secret=CLIENTSECRET&compact=true"
 	url = strings.Replace(url, "VID", strconv.Itoa(id), 1)
-	url = strings.Replace(url, "CLIENTID", os.Getenv("CLIENTID"), 1)
-	url = strings.Replace(url, "CLIENTSECRET", os.Getenv("CLIENTSECRET"), 1)
+	url = strings.Replace(url, "CLIENTID", untappdKey, 1)
+	url = strings.Replace(url, "CLIENTSECRET", untappdSecret, 1)
 
 	response, err := fetcher.Fetch(url)
 
