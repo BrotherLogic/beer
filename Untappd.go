@@ -1,14 +1,19 @@
 package main
 
+import "bufio"
 import "encoding/json"
+import "fmt"
 import "log"
 import "net/http"
+import "os"
 import "io/ioutil"
 import "strconv"
 import "strings"
 
 var untappdKey string
 var untappdSecret string
+
+var beerMap map[int]string
 
 type unmarshaller interface {
 	Unmarshal([]byte, *map[string]interface{}) error
@@ -36,6 +41,49 @@ type mainFetcher struct{}
 
 func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
 	return http.Get(url)
+}
+
+func cacheBeer(id int, name string) {
+	beerMap[id] = name
+}
+
+func init() {
+	beerMap = make(map[int]string)
+}
+
+// LoadCache - loads the cache from a given file
+func LoadCache(folder string) {
+	fileName := folder + "/untappd.metadata"
+	file, err := os.Open(fileName)
+
+	if err != nil {
+		log.Printf("Error loading cache: %v - %v\n", fileName, err)
+	} else {
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			line := scanner.Text()
+			elems := strings.Split(line, "~")
+			val, _ := strconv.Atoi(elems[0])
+			beerMap[val] = elems[1]
+		}
+	}
+}
+
+// SaveCache - saves the cache to a given file
+func SaveCache(folder string) {
+	os.Mkdir(folder, 0777)
+	fileName := folder + "/untappd.metadata"
+	file, err := os.Create(fileName)
+
+	defer file.Close()
+
+	if err == nil {
+		for k, v := range beerMap {
+			fmt.Fprintf(file, "%v~%v\n", k, v)
+		}
+	} else {
+		log.Printf("Failed opening file %v - %v\n", fileName, err)
+	}
 }
 
 func getBeerPage(fetcher httpResponseFetcher, converter responseConverter, id int) string {
@@ -95,7 +143,7 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 	meta := mapper["meta"].(map[string]interface{})
 	metaCode := int(meta["code"].(float64))
 	if metaCode != 200 {
-	   return meta["error_detail"].(string)
+		return meta["error_detail"].(string)
 	}
 
 	response := mapper["response"].(map[string]interface{})
@@ -128,6 +176,12 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]int, error) 
 
 // GetBeerName Determines the name of the beer from the id
 func GetBeerName(id int) string {
+
+	//Check the cache
+	if val, ok := beerMap[id]; ok {
+		return val
+	}
+
 	var fetcher httpResponseFetcher = mainFetcher{}
 	var converter responseConverter = mainConverter{}
 	var unmarshaller unmarshaller = mainUnmarshaller{}
