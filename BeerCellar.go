@@ -12,23 +12,23 @@ import "time"
 
 // BeerCellar the overall beer cellar
 type BeerCellar struct {
-	version  string
-	name     string
-	syncTime string
-	untappdKey string
+	version       string
+	name          string
+	syncTime      string
+	untappdKey    string
 	untappdSecret string
-	bcellar  []Cellar
+	bcellar       []Cellar
 }
 
 // SetUntappd sets the untappd key, secret pair
 func (cellar *BeerCellar) SetUntappd(key string, secret string) {
-     cellar.untappdKey = key
-     cellar.untappdSecret = secret
+	cellar.untappdKey = key
+	cellar.untappdSecret = secret
 }
 
 // GetUntappd Gets the untappd key,secret pair
 func (cellar BeerCellar) GetUntappd() (string, string) {
-     return cellar.untappdKey, cellar.untappdSecret
+	return cellar.untappdKey, cellar.untappdSecret
 }
 
 // PrintCellar prints out the cellar
@@ -148,10 +148,10 @@ func LoadBeerCellar(name string) (*BeerCellar, error) {
 // NewBeerCellar creates new beer cellar
 func NewBeerCellar(name string) *BeerCellar {
 	bc := BeerCellar{
-		version: "0.1",
-		name:    name,
+		version:  "0.1",
+		name:     name,
 		syncTime: time.Now().Format("02/01/06"),
-		bcellar: make([]Cellar, 0),
+		bcellar:  make([]Cellar, 0),
 	}
 
 	for i := 1; i < 9; i++ {
@@ -163,11 +163,11 @@ func NewBeerCellar(name string) *BeerCellar {
 
 // LoadOrNewBeerCellar loads or creates a new BeerCellar
 func LoadOrNewBeerCellar(name string) (*BeerCellar, error) {
-     if _, err := os.Stat(name + ".metadata"); err == nil {
-     	return LoadBeerCellar(name)
-     }
+	if _, err := os.Stat(name + ".metadata"); err == nil {
+		return LoadBeerCellar(name)
+	}
 
-     return NewBeerCellar(name), nil
+	return NewBeerCellar(name), nil
 }
 
 // GetVersion gets the version of the cellar code
@@ -197,7 +197,7 @@ func Min(a int, b int) int {
 
 // ListBeers lists the cellared beers of a given type
 func (cellar *BeerCellar) ListBeers(num int, btype string) []Beer {
-     log.Printf("Cellar looks like %v\n", cellar.bcellar)
+	log.Printf("Cellar looks like %v\n", cellar.bcellar)
 	retList := MergeCellars(btype, cellar.bcellar...)
 	return retList[:Min(len(retList), num)]
 }
@@ -248,20 +248,20 @@ func runListBeers(listBeers bool, numBombers int, numSmall int, cellar *BeerCell
 }
 
 func runSaveUntappd(saveUntappd bool, key string, secret string, cellar *BeerCellar) {
-     if saveUntappd {
-     	cellar.SetUntappd(key, secret)
-	untappdKey = key
-	untappdSecret = secret
-     } else {
-       if cellar.untappdKey == "" {
-       	  //Set from environment variables
-	  untappdKey = os.Getenv("CLIENTID")
-	  untappdSecret = os.Getenv("CLIENTSECRET")
-       } else {
-       	 untappdKey = cellar.untappdKey
-	 untappdSecret = cellar.untappdSecret
-       }
-     }
+	if saveUntappd {
+		cellar.SetUntappd(key, secret)
+		untappdKey = key
+		untappdSecret = secret
+	} else {
+		if cellar.untappdKey == "" {
+			//Set from environment variables
+			untappdKey = os.Getenv("CLIENTID")
+			untappdSecret = os.Getenv("CLIENTSECRET")
+		} else {
+			untappdKey = cellar.untappdKey
+			untappdSecret = cellar.untappdSecret
+		}
+	}
 }
 
 func main() {
@@ -297,11 +297,14 @@ func main() {
 	cellarName := "prod"
 
 	flag.Parse()
-	cellar,_ := LoadOrNewBeerCellar(cellarName)
+	cellar, _ := LoadOrNewBeerCellar(cellarName)
+	LoadCache("prod_cache")
+
 	runSaveUntappd(saveUntappd, key, secret, cellar)
 	runVersion(version, cellar)
 	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
 	runPrintCellar(printCellar, cellar)
 	runListBeers(listBeers, numBombers, numSmall, cellar)
 	cellar.Save()
+	SaveCache("prod_cache")
 }

@@ -34,17 +34,22 @@ func (fetcher stubFailFetcher) Fetch(url string) (*http.Response, error) {
 }
 
 func TestGetBeerName(t *testing.T) {
-     untappdKey = os.Getenv("CLIENTID")
-     untappdSecret = os.Getenv("CLIENTSECRET")
+	untappdKey = os.Getenv("CLIENTID")
+	untappdSecret = os.Getenv("CLIENTSECRET")
 	beerName := GetBeerName(7936)
 	if beerName != "Firestone Walker Brewing Company - Parabola" {
 		t.Errorf("Beer name %q is not firestone, parabola\n", beerName)
 	}
 }
 
+func TestSaveLoadCache(t *testing.T) {
+	untappdKey = ""
+	untappdSecret = ""
+}
+
 func TestGetBeerPage(t *testing.T) {
-     untappdKey = os.Getenv("CLIENTID")
-     untappdSecret = os.Getenv("CLIENTSECRET")
+	untappdKey = os.Getenv("CLIENTID")
+	untappdSecret = os.Getenv("CLIENTSECRET")
 	var fetcher = mainFetcher{}
 	var converter = mainConverter{}
 	beerPage := getBeerPage(fetcher, converter, 7936)
@@ -59,6 +64,38 @@ func TestGetVenuePage(t *testing.T) {
 	drinks := getVenuePage(fetcher, converter, 2194560)
 	if !strings.Contains(drinks, "Bookers") {
 		t.Errorf("Venue Page is not being retrieved correctly\n%v\n", drinks)
+	}
+}
+
+func TestGetBeerFromCache(t *testing.T) {
+	untappdKey = ""
+	untappdSecret = ""
+	beerName := GetBeerName(7936)
+	if strings.Contains(beerName, "Firestone") {
+		t.Errorf("Beer has been retrieved despite no caching / credentials\n")
+	}
+
+	//Insert the beer into the cache
+	cacheBeer(7936, "Firestone Walker Brewing Company - Parabola")
+
+	beerName = GetBeerName(7936)
+	if !strings.Contains(beerName, "Firestone") {
+		t.Errorf("Beer name cannot be retrieved despite caching")
+	}
+}
+
+func TestGetBeerFromSavedCache(t *testing.T) {
+	untappdKey = ""
+	untappdSecret = ""
+	cacheBeer(7936, "Firestone Walker Brewing Company - Parabola")
+	SaveCache("testing_cache")
+
+	beerMap = make(map[int]string)
+	LoadCache("testing_cache")
+
+	beerName := GetBeerName(7936)
+	if !strings.Contains(beerName, "Firestone") {
+		t.Errorf("Cache reload failed\n")
 	}
 }
 
