@@ -20,6 +20,15 @@ type BeerCellar struct {
 	bcellar       []Cellar
 }
 
+// CountBeers returns the number of beers of a given id in the cellar
+func (cellar *BeerCellar) CountBeers(id int) int {
+	sum := 0
+	for _, v := range cellar.bcellar {
+		sum += v.CountBeersInCellar(id)
+	}
+	return sum
+}
+
 // SetUntappd sets the untappd key, secret pair
 func (cellar *BeerCellar) SetUntappd(key string, secret string) {
 	cellar.untappdKey = key

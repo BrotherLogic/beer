@@ -4,24 +4,24 @@ import "log"
 import "testing"
 
 func TestAddToCellars(t *testing.T) {
-     mine1 := NewBeerCellar("testaddcellar")
-     runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
-     runAddBeer(true, "1234", "01/01.15", "bomber", mine1)
+	mine1 := NewBeerCellar("testaddcellar")
+	runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
+	runAddBeer(true, "1234", "01/01.15", "bomber", mine1)
 
-     if mine1.GetEmptyCellarCount() != 7 {
-     	t.Errorf("Cellar is not balanced: %v\n", mine1)
-     }
+	if mine1.GetEmptyCellarCount() != 7 {
+		t.Errorf("Cellar is not balanced: %v\n", mine1)
+	}
 }
 
 func TestSaveAndReload(t *testing.T) {
-     mine1,_ := LoadOrNewBeerCellar("cellar1")
-     runAddBeer(true,"1234","01/01/16","bomber", mine1)
-     mine1.Save()
+	mine1, _ := LoadOrNewBeerCellar("cellar1")
+	runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
+	mine1.Save()
 
-     mine2,_ := LoadOrNewBeerCellar("cellar1")
-     if mine2.Size() == 0 {
-     	t.Errorf("Cellar is not being reloaded correctly\n")
-     }
+	mine2, _ := LoadOrNewBeerCellar("cellar1")
+	if mine2.Size() == 0 {
+		t.Errorf("Cellar is not being reloaded correctly\n")
+	}
 }
 
 func TestForClobbering(t *testing.T) {
@@ -93,7 +93,7 @@ func TestRunVersion(t *testing.T) {
 }
 
 func TestRunSaveUntappd(t *testing.T) {
-     runSaveUntappd(true, "testkey", "testsecret", NewBeerCellar("untappdtest"))
+	runSaveUntappd(true, "testkey", "testsecret", NewBeerCellar("untappdtest"))
 }
 
 func TestRunAddBeer(t *testing.T) {
@@ -189,24 +189,24 @@ func TestLoadBadBeerCellar(t *testing.T) {
 }
 
 func TestPrintBeers(t *testing.T) {
-     log.Printf("Starting Here\n")
-     cellar := NewBeerCellar("test")
-     beer1, _ := NewBeer("1234~12/05/12~bomber")
-     beer2, _ := NewBeer("1235~12/05/12~small")
-     cellar.AddBeerToCellar(beer1)
-     cellar.AddBeerToCellar(beer2)
-     cellar.PrintBeers(5,5)
+	log.Printf("Starting Here\n")
+	cellar := NewBeerCellar("test")
+	beer1, _ := NewBeer("1234~12/05/12~bomber")
+	beer2, _ := NewBeer("1235~12/05/12~small")
+	cellar.AddBeerToCellar(beer1)
+	cellar.AddBeerToCellar(beer2)
+	cellar.PrintBeers(5, 5)
 }
 
 func TestGetUntappdKeys(t *testing.T) {
-     cellar := NewBeerCellar("uttest")
-     cellar.SetUntappd("testkey", "testsecret")
-     cellar.Save()
+	cellar := NewBeerCellar("uttest")
+	cellar.SetUntappd("testkey", "testsecret")
+	cellar.Save()
 
-     cellar2, _ := LoadOrNewBeerCellar("uttest")
+	cellar2, _ := LoadOrNewBeerCellar("uttest")
 
-     key, secret := cellar2.GetUntappd()
-     if key != "testkey" || secret != "testsecret" {
-     	t.Errorf("Keys have come back incorrectly: %v and %v\n", key, secret)
-     }
+	key, secret := cellar2.GetUntappd()
+	if key != "testkey" || secret != "testsecret" {
+		t.Errorf("Keys have come back incorrectly: %v and %v\n", key, secret)
+	}
 }
