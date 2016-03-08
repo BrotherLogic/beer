@@ -187,5 +187,7 @@ func GetBeerName(id int) string {
 	var unmarshaller unmarshaller = mainUnmarshaller{}
 	text := getBeerPage(fetcher, converter, id)
 
-	return convertPageToName(text, unmarshaller)
+	name := convertPageToName(text, unmarshaller)
+	beerMap[id] = name
+	return name
 }
