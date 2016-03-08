@@ -70,6 +70,7 @@ func TestGetVenuePage(t *testing.T) {
 func TestGetBeerFromCache(t *testing.T) {
 	untappdKey = ""
 	untappdSecret = ""
+	beerMap = make(map[int]string)
 	beerName := GetBeerName(7936)
 	if strings.Contains(beerName, "Firestone") {
 		t.Errorf("Beer has been retrieved despite no caching / credentials\n")
