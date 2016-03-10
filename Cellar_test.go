@@ -16,6 +16,72 @@ func (lineCounter LineCounterPrinter) GetCount() int {
 	return lineCounter.lcount
 }
 
+func TestMidInsert(t *testing.T) {
+	mine := NewCellar("testinsertcellar")
+	beer1, _ := NewBeer("1234~01/01/16~small")
+	beer2, _ := NewBeer("1235~01/02/16~small")
+	beer3, _ := NewBeer("1236~01/03/16~small")
+	beer4, _ := NewBeer("1237~01/04/16~small")
+
+	mine.AddBeer(beer1)
+	mine.AddBeer(beer2)
+	mine.AddBeer(beer4)
+
+	log.Printf("%v\n", mine)
+
+	mine.AddBeer(beer3)
+
+	log.Printf("%v\n", mine)
+
+	if mine.CountBeersInCellar(1237) != 1 {
+		t.Errorf("Problem with cellar: %v\n", mine)
+	}
+}
+
+func TestProblemsOfClobbering(t *testing.T) {
+	mine1 := NewCellar("testprobcellar")
+	beer1, _ := NewBeer("938229~01/03/18~small")
+	mine1.AddBeer(beer1)
+	log.Printf("%v\n", mine1)
+	if mine1.CountBeersInCellar(938229) != 1 {
+		t.Errorf("Problem with cellar 1. (%v) %v\n", mine1.CountBeersInCellar(938229), mine1)
+	}
+	beer2, _ := NewBeer("938229~01/03/17~small")
+	mine1.AddBeer(beer2)
+	log.Printf("%v\n", mine1)
+	if mine1.CountBeersInCellar(938229) != 2 {
+		t.Errorf("Problem with cellar 2. (%v) %v\n", mine1.CountBeersInCellar(938229), mine1)
+	}
+	beer3, _ := NewBeer("938229~01/03/16~small")
+	mine1.AddBeer(beer3)
+	log.Printf("%v\n", mine1)
+	if mine1.CountBeersInCellar(938229) != 3 {
+		t.Errorf("Problem with cellar 3. (%v) %v\n", mine1.CountBeersInCellar(938229), mine1)
+	}
+	beer4, _ := NewBeer("768356~01/09/18~small")
+	mine1.AddBeer(beer4)
+	log.Printf("%v\n", mine1)
+	beer5, _ := NewBeer("768356~01/09/18~small")
+	mine1.AddBeer(beer5)
+	log.Printf("%v\n", mine1)
+	beer6, _ := NewBeer("768356~01/09/17~small")
+	mine1.AddBeer(beer6)
+	log.Printf("%v\n", mine1)
+	beer7, _ := NewBeer("938229~01/03/17~small")
+	mine1.AddBeer(beer7)
+	log.Printf("%v\n", mine1)
+	if mine1.CountBeersInCellar(938229) != 4 {
+		t.Errorf("Problem with cellar 4. (%v) %v\n", mine1.CountBeersInCellar(938229), mine1)
+	}
+	beer8, _ := NewBeer("552346~01/03/17~small")
+	mine1.AddBeer(beer8)
+	log.Printf("%v\n", mine1)
+
+	if mine1.Size() != 8 {
+		t.Errorf("Not the right number of beers, 8 but %v\n", mine1.Size())
+	}
+}
+
 func TestMergeCellar(t *testing.T) {
 	cellar1 := NewCellar("cellar1")
 	cellar2 := NewCellar("cellar2")

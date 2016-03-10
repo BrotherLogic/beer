@@ -29,7 +29,18 @@ type Cellar struct {
 
 // NewCellar builds a new cellar
 func NewCellar(cname string) Cellar {
-	return Cellar{name: cname, contents: make([]Beer, 0)}
+	return Cellar{name: cname, contents: make([]Beer, 0, 30)}
+}
+
+// CountBeersInCellar counts the number of beers in the cellar
+func (cellar *Cellar) CountBeersInCellar(id int) int {
+	sum := 0
+	for _, v := range cellar.contents {
+		if v.id == id {
+			sum++
+		}
+	}
+	return sum
 }
 
 // Save saves the cellar file
@@ -104,11 +115,13 @@ func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
 
 // AddBeer adds a beer to the cellar
 func (cellar *Cellar) AddBeer(beer Beer) {
+	log.Printf("Adding %v\n", beer)
+
 	insertPoint := cellar.getInsertPoint(beer)
-	before := cellar.contents[:insertPoint]
-	after := cellar.contents[insertPoint:]
-	cellar.contents = append(before, beer)
-	cellar.contents = append(cellar.contents, after...)
+
+	cellar.contents = cellar.contents[0 : len(cellar.contents)+1]
+	copy(cellar.contents[insertPoint+1:], cellar.contents[insertPoint:])
+	cellar.contents[insertPoint] = beer
 }
 
 // Size Determines the size of the cellar
