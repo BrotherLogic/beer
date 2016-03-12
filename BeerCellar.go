@@ -230,37 +230,49 @@ func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
 
 }
 
-func runVersion(version bool, cellar *BeerCellar) {
-	if version {
+func runVersion(command string, cellar *BeerCellar) {
+	if command == "version" {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
 	}
 }
 
-func runAddBeer(addBeer bool, id string, date string, size string, cellar *BeerCellar) {
-	if addBeer {
+func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, cellar *BeerCellar) {
+	if command == "add" {
+	   if flags.Parsed() {
 		box := cellar.AddBeer(id, date, size)
 		print := &StdOutPrint{}
 		box.PrintCellar(print)
+		} else {
+		flags.PrintDefaults()
+		}
 	}
 }
 
-func runPrintCellar(printCellar bool, cellar *BeerCellar) {
-	if printCellar {
-		cellar.PrintCellar(&StdOutPrint{})
-	}
+func runPrintCellar(command string,  cellar *BeerCellar) {
+	if command == "print" {
+			cellar.PrintCellar(&StdOutPrint{})
+	} 
 }
 
-func runListBeers(listBeers bool, numBombers int, numSmall int, cellar *BeerCellar) {
-	if listBeers {
+func runListBeers(command string, flags *flag.FlagSet, numBombers int, numSmall int, cellar *BeerCellar) {
+	if command == "list" {
+	   if flags.Parsed() {
 		cellar.PrintBeers(numBombers, numSmall)
+		} else {
+		flags.PrintDefaults()
+		}
 	}
 }
 
-func runSaveUntappd(saveUntappd bool, key string, secret string, cellar *BeerCellar) {
-	if saveUntappd {
+func runSaveUntappd(command string, flags *flag.FlagSet, key string, secret string, cellar *BeerCellar) {
+	if command == "untappd" {
+	   if flags.Parsed() {
 		cellar.SetUntappd(key, secret)
 		untappdKey = key
 		untappdSecret = secret
+		} else {
+		  flags.PrintDefaults()
+		  }
 	} else {
 		if cellar.untappdKey == "" {
 			//Set from environment variables
@@ -274,46 +286,39 @@ func runSaveUntappd(saveUntappd bool, key string, secret string, cellar *BeerCel
 }
 
 func main() {
-	var version bool
-	flag.BoolVar(&version, "version", false, "Prints version")
-
-	var addBeer bool
 	var beerid string
 	var drinkDate string
 	var size string
-	flag.BoolVar(&addBeer, "add", false, "Adds a beer")
-	flag.StringVar(&beerid, "id", "-1", "ID of the beer")
-	flag.StringVar(&drinkDate, "date", "", "Date to be drunk by")
-	flag.StringVar(&size, "size", "", "Size of bottle")
+	addBeerFlags := flag.NewFlagSet("add", flag.ContinueOnError)
+	addBeerFlags.StringVar(&beerid, "id", "-1", "ID of the beer")
+	addBeerFlags.StringVar(&drinkDate, "date", "", "Date to be drunk by")
+	addBeerFlags.StringVar(&size, "size", "", "Size of bottle")
 
-	var printCellar bool
-	flag.BoolVar(&printCellar, "print", false, "Prints the cellar")
-
-	var listBeers bool
 	var numBombers int
 	var numSmall int
-	flag.BoolVar(&listBeers, "list", false, "Lists beer to be drunk")
-	flag.IntVar(&numBombers, "bombers", 0, "Number of bombers to list from the cellar")
-	flag.IntVar(&numSmall, "small", 0, "Number of small beers to list from the cellar")
+	listBeerFlags := flag.NewFlagSet("list", flag.ContinueOnError)
+	listBeerFlags.IntVar(&numBombers, "bombers", 0, "Number of bombers to list from the cellar")
+	listBeerFlags.IntVar(&numSmall, "small", 0, "Number of small beers to list from the cellar")
 
-	var saveUntappd bool
 	var key string
 	var secret string
-	flag.BoolVar(&saveUntappd, "untappd", false, "Settings for untappd")
-	flag.StringVar(&key, "key", "", "Key for untappd")
-	flag.StringVar(&secret, "secret", "", "Secret for untappd")
+	saveUntappdFlags := flag.NewFlagSet("untappd", flag.ContinueOnError)
+	saveUntappdFlags.StringVar(&key, "key", "", "Key for untappd")
+	saveUntappdFlags.StringVar(&secret, "secret", "", "Secret for untappd")
 
 	cellarName := "prod"
 
-	flag.Parse()
+	addBeerFlags.Parse(os.Args[2:])
+	listBeerFlags.Parse(os.Args[2:])
+	saveUntappdFlags.Parse(os.Args[2:])
 	cellar, _ := LoadOrNewBeerCellar(cellarName)
 	LoadCache("prod_cache")
 
-	runSaveUntappd(saveUntappd, key, secret, cellar)
-	runVersion(version, cellar)
-	runAddBeer(addBeer, beerid, drinkDate, size, cellar)
-	runPrintCellar(printCellar, cellar)
-	runListBeers(listBeers, numBombers, numSmall, cellar)
+	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
+	runVersion(os.Args[1], cellar)
+	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, cellar)
+	runPrintCellar(os.Args[1], cellar)
+	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
 	cellar.Save()
 	SaveCache("prod_cache")
 }
