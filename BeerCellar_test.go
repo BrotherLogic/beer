@@ -1,12 +1,13 @@
 package main
 
+import "flag"
 import "log"
 import "testing"
 
 func TestAddToCellars(t *testing.T) {
 	mine1 := NewBeerCellar("testaddcellar")
-	runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
-	runAddBeer(true, "1234", "01/01.15", "bomber", mine1)
+	mine1.AddBeer("1234", "01/01/16", "bomber")
+	mine1.AddBeer("1234", "01/01.15", "bomber")
 
 	if mine1.GetEmptyCellarCount() != 7 {
 		t.Errorf("Cellar is not balanced: %v\n", mine1)
@@ -15,7 +16,7 @@ func TestAddToCellars(t *testing.T) {
 
 func TestSaveAndReload(t *testing.T) {
 	mine1, _ := LoadOrNewBeerCellar("cellar1")
-	runAddBeer(true, "1234", "01/01/16", "bomber", mine1)
+	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.Save()
 
 	mine2, _ := LoadOrNewBeerCellar("cellar1")
@@ -89,23 +90,23 @@ func TestMain(t *testing.T) {
 }
 
 func TestRunVersion(t *testing.T) {
-	runVersion(true, NewBeerCellar("test"))
+	runVersion("version", NewBeerCellar("test"))
 }
 
 func TestRunSaveUntappd(t *testing.T) {
-	runSaveUntappd(true, "testkey", "testsecret", NewBeerCellar("untappdtest"))
+	runSaveUntappd("untappd", flag.NewFlagSet("blah", flag.ExitOnError), "testkey", "testsecret", NewBeerCellar("untappdtest"))
 }
 
 func TestRunAddBeer(t *testing.T) {
-	runAddBeer(true, "1234", "01/02/16", "bomber", NewBeerCellar("test"))
+	runAddBeer("add", flag.NewFlagSet("mock", flag.ExitOnError), "1234", "01/02/16", "bomber", NewBeerCellar("test"))
 }
 
 func TestRunPrintCellar(t *testing.T) {
-	runPrintCellar(true, NewBeerCellar("test"))
+	runPrintCellar("print", NewBeerCellar("test"))
 }
 
 func TestRunListBeers(t *testing.T) {
-	runListBeers(true, 5, 5, NewBeerCellar("test"))
+	runListBeers("list", flag.NewFlagSet("mock", flag.ExitOnError), 5, 5, NewBeerCellar("test"))
 }
 
 func TestMin(t *testing.T) {
