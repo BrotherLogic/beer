@@ -33,6 +33,19 @@ func (fetcher stubFailFetcher) Fetch(url string) (*http.Response, error) {
 	return resp, err
 }
 
+type blankVenuePageFetcher struct{}
+
+func (fetcher blankVenuePageFetcher) Fetch(url string) (*http.Response, error) {
+     return &http.Response{}, nil
+}
+
+type venuePageConverter struct{}
+
+func (converter venuePageConverter) Convert(response *http.Response) ([]byte, error) {
+     return []byte(mockVenuePage), nil
+}
+
+
 func TestGetBeerName(t *testing.T) {
 	untappdKey = os.Getenv("CLIENTID")
 	untappdSecret = os.Getenv("CLIENTSECRET")
@@ -65,6 +78,27 @@ func TestGetVenuePage(t *testing.T) {
 	if !strings.Contains(drinks, "Bookers") {
 		t.Errorf("Venue Page is not being retrieved correctly\n%v\n", drinks)
 	}
+}
+
+func TestGetRecentDrinks(t *testing.T) {
+     var fetcher = blankVenuePageFetcher{}
+     var converter = venuePageConverter{}
+     drinks := GetRecentDrinks(fetcher, converter, "01/01/13")
+
+     if len(drinks) != 25 {
+     	t.Errorf("Not enough drinks processed %v\n", len(drinks))
+     }
+
+     found := false
+     for _, v := range drinks {
+     	 if v == 791939 {
+	    found = true
+	 }
+     }
+
+if !found {
+   t.Errorf("Beer drunk was not found: %v\n", drinks)
+} 
 }
 
 func TestGetBeerFromCache(t *testing.T) {

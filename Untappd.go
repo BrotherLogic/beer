@@ -9,6 +9,7 @@ import "os"
 import "io/ioutil"
 import "strconv"
 import "strings"
+import "time"
 
 var untappdKey string
 var untappdSecret string
@@ -27,6 +28,7 @@ func (unmarshaller mainUnmarshaller) Unmarshal(inp []byte, resp *map[string]inte
 type responseConverter interface {
 	Convert(*http.Response) ([]byte, error)
 }
+
 type mainConverter struct{}
 
 func (converter mainConverter) Convert(response *http.Response) ([]byte, error) {
@@ -152,9 +154,9 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 	return brewery["brewery_name"].(string) + " - " + beer["beer_name"].(string)
 }
 
-func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]int, error) {
+func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error) {
 	var mapper map[string]interface{}
-	var values []int
+	var values []Beer
 	err := unmarshaller.Unmarshal([]byte(page), &mapper)
 	if err != nil {
 		log.Printf("%q\n", err)
@@ -168,10 +170,35 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]int, error) 
 	for _, v := range items {
 		beer := v.(map[string]interface{})["beer"].(map[string]interface{})
 		beerID := int(beer["bid"].(float64))
-		values = append(values, beerID)
+		date := string(v.(map[string]interface{})["created_at"].(string))
+		cdate, _ := time.Parse(time.RFC1123Z, date)
+		nbeer := Beer{id: beerID, drinkDate: cdate.Format("02/01/06")}
+		values = append(values, nbeer)
 	}
 
 	return values, nil
+}
+
+// GetRecentDrinks Gets the most recent drinks from untappd
+func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, date string) []int {
+     var unmarshaller unmarshaller = mainUnmarshaller{}
+
+     var ret []int
+
+     text := getVenuePage(fetcher, converter, 2194560)
+     drinks, err := convertPageToDrinks(text, unmarshaller)
+
+     if err != nil {
+     	return ret
+     }
+
+     for _, k := range drinks {
+     	 if IsAfter(date, k.drinkDate) {
+	    ret = append(ret, k.id)
+	 }
+     }
+
+     return ret
 }
 
 // GetBeerName Determines the name of the beer from the id

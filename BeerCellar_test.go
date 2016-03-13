@@ -14,6 +14,30 @@ func TestAddToCellars(t *testing.T) {
 	}
 }
 
+func TestSyncAndSave(t *testing.T) {
+     mine := NewBeerCellar("testsync")
+     mine.AddBeer("1234", "01/01/16", "bomber")
+     mine.AddBeer("791939", "01/02/16", "bomber")
+     mine.AddBeer("1234", "01/03/16", "bomber")
+     mine.syncTime = "28/02/16"
+
+     mine.Sync(blankVenuePageFetcher{}, venuePageConverter{})
+     mine.Save();
+
+     mine2, err := LoadBeerCellar("testsync")
+     if err != nil {
+     	t.Errorf("Error loading cellar: %v", err)
+     }
+
+     if mine2.Size() != 2 {
+     	t.Errorf("Sync remove has failed(%v): %v\n", mine2.Size(), mine2)
+     }
+
+     if mine2.syncTime == "28/02/16" {
+     	t.Errorf("Sync time was not updated")
+     }
+}
+
 func TestRemoveFromCellar(t *testing.T) {
      mine := NewBeerCellar("testremovefromcellar")
      mine.AddBeer("1234", "01/01/16", "bomber")

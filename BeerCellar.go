@@ -20,6 +20,17 @@ type BeerCellar struct {
 	bcellar       []Cellar
 }
 
+// Sync syncs with untappd
+func (cellar *BeerCellar) Sync(fetcher httpResponseFetcher, converter responseConverter) {
+     drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
+     for _,val := range drunk {
+     	 log.Printf("Removing %v from cellar\n", val)
+     	 cellar.RemoveBeer(val)
+     }
+
+     cellar.syncTime = time.Now().Format("02/01/06")
+}
+
 // RemoveBeer removes a beer from the cellar
 func (cellar *BeerCellar) RemoveBeer(id int) {
      cellarIndex := -1
@@ -34,7 +45,10 @@ func (cellar *BeerCellar) RemoveBeer(id int) {
 	 }
      }
 
+     if cellarIndex >= 0 {
+     log.Printf("Removing %v from %v\n", id, cellarIndex)
      cellar.bcellar[cellarIndex].Remove(id)
+     }
 }
 
 // CountBeers returns the number of beers of a given id in the cellar
