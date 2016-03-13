@@ -20,6 +20,23 @@ type BeerCellar struct {
 	bcellar       []Cellar
 }
 
+// RemoveBeer removes a beer from the cellar
+func (cellar *BeerCellar) RemoveBeer(id int) {
+     cellarIndex := -1
+     cellarCost := -1
+     for i, c := range cellar.bcellar {
+     	 cost := c.GetRemoveCost(id)
+	 if cost >= 0 {
+	    if cellarIndex < 0 || cost < cellarCost {
+	       cellarIndex = i
+	       cellarCost = cost
+	    }
+	 }
+     }
+
+     cellar.bcellar[cellarIndex].Remove(id)
+}
+
 // CountBeers returns the number of beers of a given id in the cellar
 func (cellar *BeerCellar) CountBeers(id int) int {
 	sum := 0
