@@ -55,9 +55,15 @@ func TestGetBeerName(t *testing.T) {
 	}
 }
 
-func TestSaveLoadCache(t *testing.T) {
-	untappdKey = ""
-	untappdSecret = ""
+func TestSearch(t *testing.T) {
+     beerMap = make(map[int] string)
+     cacheBeer(1234,"Testing Beer")
+     cacheBeer(1235,"Made up Thing")
+
+     matches := Search("eer")
+     if len(matches) != 1 {
+     	t.Errorf("Wrong number of matches returned :%v should have been 1, given %v", len(matches), beerMap)
+     }
 }
 
 func TestGetBeerPage(t *testing.T) {
