@@ -14,6 +14,19 @@ func TestAddToCellars(t *testing.T) {
 	}
 }
 
+func TestRemoveFromCellar(t *testing.T) {
+     mine := NewBeerCellar("testremovefromcellar")
+     mine.AddBeer("1234", "01/01/16", "bomber")
+     mine.AddBeer("1235", "01/02/16", "bomber")
+     mine.AddBeer("1234", "01/03/16", "bomber")
+
+     mine.RemoveBeer(1234)
+
+     if len(mine.bcellar[0].contents) != 2 {
+     	t.Errorf("Beer has not been removed: %v\n", mine)
+     }
+}
+
 func TestSaveAndReload(t *testing.T) {
 	mine1, _ := LoadOrNewBeerCellar("cellar1")
 	mine1.AddBeer("1234", "01/01/16", "bomber")

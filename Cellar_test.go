@@ -16,6 +16,47 @@ func (lineCounter LineCounterPrinter) GetCount() int {
 	return lineCounter.lcount
 }
 
+func TestRemoveBeer(t *testing.T) {
+     mine := NewCellar("testremovecostcellar")
+	beer1, _ := NewBeer("1234~01/01/16~small")
+	beer2, _ := NewBeer("1235~01/02/16~small")
+	beer3, _ := NewBeer("1236~01/03/16~small")
+	mine.AddBeer(beer1)
+	mine.AddBeer(beer2)
+	mine.AddBeer(beer3)
+
+	mine.Remove(1235)
+
+	if (len(mine.contents) != 2) {
+		t.Errorf("Beer has not been removed: %v\n", mine)
+	}
+}
+
+func TestRemoveCost(t *testing.T) {
+     mine := NewCellar("testremovecostcellar")
+	beer1, _ := NewBeer("1234~01/01/16~small")
+	beer2, _ := NewBeer("1235~01/02/16~small")
+	beer3, _ := NewBeer("1236~01/03/16~small")
+	mine.AddBeer(beer1)
+	mine.AddBeer(beer2)
+	mine.AddBeer(beer3)
+
+	if mine.GetRemoveCost(1237) >= 0 {
+	   t.Errorf("Removing non cellared beer is not less than zero: %v\n", mine.GetRemoveCost(1237))
+	}
+
+	if mine.GetRemoveCost(1234) != 0 {
+	  t.Errorf("Remove cost is wrong (0): %v\n", mine.GetRemoveCost(1234))
+	}
+	if mine.GetRemoveCost(1235) != 1 {
+	  t.Errorf("Remove cost is wrong (1): %v\n", mine.GetRemoveCost(1234))
+	}
+	if mine.GetRemoveCost(1236) != 2 {
+	  t.Errorf("Remove cost is wrong (2): %v\n", mine.GetRemoveCost(1234))
+	}
+
+}
+
 func TestMidInsert(t *testing.T) {
 	mine := NewCellar("testinsertcellar")
 	beer1, _ := NewBeer("1234~01/01/16~small")
