@@ -16,6 +16,12 @@ var untappdSecret string
 
 var beerMap map[int]string
 
+// Match a match when doing a search
+type Match struct {
+     id int
+     name string
+     }
+
 type unmarshaller interface {
 	Unmarshal([]byte, *map[string]interface{}) error
 }
@@ -43,6 +49,18 @@ type mainFetcher struct{}
 
 func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
 	return http.Get(url)
+}
+
+// Search finds beers in the cache that match blah
+func Search(namePart string) []Match {
+     ret := make([]Match, 0, len(beerMap))
+     for k,v := range beerMap {
+     	 if strings.Contains(v, namePart) {
+	    ret = append(ret, Match {id: k, name: v})
+	 }
+     }
+
+     return ret
 }
 
 func cacheBeer(id int, name string) {

@@ -261,6 +261,19 @@ func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
 
 }
 
+func runSearch(command string, flags *flag.FlagSet, search string) {
+     if command == "search" {
+     	if flags.Parsed() {
+     	matches := Search(search)
+	for _, match := range matches {
+	    fmt.Printf("%v: %v\n", match.name, match.id)
+	}
+     } else {
+       flags.PrintDefaults()
+}
+}
+}
+
 func runVersion(command string, cellar *BeerCellar) {
 	if command == "version" {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
@@ -337,11 +350,16 @@ func main() {
 	saveUntappdFlags.StringVar(&key, "key", "", "Key for untappd")
 	saveUntappdFlags.StringVar(&secret, "secret", "", "Secret for untappd")
 
+	var search string
+	searchFlags := flag.NewFlagSet("search", flag.ContinueOnError)
+	searchFlags.StringVar(&search, "string", "", "String to search for")
+
 	cellarName := "prod"
 
 	addBeerFlags.Parse(os.Args[2:])
 	listBeerFlags.Parse(os.Args[2:])
 	saveUntappdFlags.Parse(os.Args[2:])
+	searchFlags.Parse(os.Args[2:])
 	cellar, _ := LoadOrNewBeerCellar(cellarName)
 	LoadCache("prod_cache")
 
@@ -350,6 +368,7 @@ func main() {
 	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, cellar)
 	runPrintCellar(os.Args[1], cellar)
 	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
+	runSearch(os.Args[1], searchFlags, search)
 	cellar.Save()
 	SaveCache("prod_cache")
 }
