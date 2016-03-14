@@ -298,6 +298,15 @@ func runPrintCellar(command string,  cellar *BeerCellar) {
 	} 
 }
 
+func runRemoveBeer(command string, flags *flag.FlagSet, id int, cellar *BeerCellar) {
+     if command == "remove" {
+     	if flags.Parsed() {
+	  cellar.RemoveBeer(id)
+	  cellar.PrintCellar(&StdOutPrint{})
+	}
+     }
+}
+
 func runListBeers(command string, flags *flag.FlagSet, numBombers int, numSmall int, cellar *BeerCellar) {
 	if command == "list" {
 	   if flags.Parsed() {
@@ -354,6 +363,10 @@ func main() {
 	searchFlags := flag.NewFlagSet("search", flag.ContinueOnError)
 	searchFlags.StringVar(&search, "string", "", "String to search for")
 
+	var removeID int
+	removeFlags := flag.NewFlagSet("remove", flag.ContinueOnError)
+	removeFlags.IntVar(&removeID, "id", 0, "The ID of the beer to be removed")
+
 	cellarName := "prod"
 
 	addBeerFlags.Parse(os.Args[2:])
@@ -369,6 +382,7 @@ func main() {
 	runPrintCellar(os.Args[1], cellar)
 	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
 	runSearch(os.Args[1], searchFlags, search)
+	runRemoveBeer(os.Args[1], removeFlags, removeID, cellar)
 	cellar.Save()
 	SaveCache("prod_cache")
 }
