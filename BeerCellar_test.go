@@ -4,6 +4,24 @@ import "flag"
 import "log"
 import "testing"
 
+func TestAddByDate(t *testing.T) {
+	mine := NewBeerCellar("testaddbydays")
+	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")
+
+	if mine.Size() != 5 {
+		t.Errorf("Not enough beers added: %v\n", mine.Size())
+	}
+
+	if mine.bcellar[0].contents[0].drinkDate != "01/01/16" {
+		t.Errorf("Date on first entry is wrong: %v\n", mine.bcellar[0].contents[0].drinkDate)
+	}
+
+	if mine.bcellar[0].contents[1].drinkDate != "15/01/16" {
+		t.Errorf("Date on second entry is wrong: %v\n See cellar %v", mine.bcellar[0].contents[0].drinkDate, mine.bcellar[0])
+	}
+
+}
+
 func TestAddToCellars(t *testing.T) {
 	mine1 := NewBeerCellar("testaddcellar")
 	mine1.AddBeer("1234", "01/01/16", "bomber")
@@ -15,40 +33,40 @@ func TestAddToCellars(t *testing.T) {
 }
 
 func TestSyncAndSave(t *testing.T) {
-     mine := NewBeerCellar("testsync")
-     mine.AddBeer("1234", "01/01/16", "bomber")
-     mine.AddBeer("791939", "01/02/16", "bomber")
-     mine.AddBeer("1234", "01/03/16", "bomber")
-     mine.syncTime = "28/02/16"
+	mine := NewBeerCellar("testsync")
+	mine.AddBeer("1234", "01/01/16", "bomber")
+	mine.AddBeer("791939", "01/02/16", "bomber")
+	mine.AddBeer("1234", "01/03/16", "bomber")
+	mine.syncTime = "28/02/16"
 
-     mine.Sync(blankVenuePageFetcher{}, venuePageConverter{})
-     mine.Save();
+	mine.Sync(blankVenuePageFetcher{}, venuePageConverter{})
+	mine.Save()
 
-     mine2, err := LoadBeerCellar("testsync")
-     if err != nil {
-     	t.Errorf("Error loading cellar: %v", err)
-     }
+	mine2, err := LoadBeerCellar("testsync")
+	if err != nil {
+		t.Errorf("Error loading cellar: %v", err)
+	}
 
-     if mine2.Size() != 2 {
-     	t.Errorf("Sync remove has failed(%v): %v\n", mine2.Size(), mine2)
-     }
+	if mine2.Size() != 2 {
+		t.Errorf("Sync remove has failed(%v): %v\n", mine2.Size(), mine2)
+	}
 
-     if mine2.syncTime == "28/02/16" {
-     	t.Errorf("Sync time was not updated")
-     }
+	if mine2.syncTime == "28/02/16" {
+		t.Errorf("Sync time was not updated")
+	}
 }
 
 func TestRemoveFromCellar(t *testing.T) {
-     mine := NewBeerCellar("testremovefromcellar")
-     mine.AddBeer("1234", "01/01/16", "bomber")
-     mine.AddBeer("1235", "01/02/16", "bomber")
-     mine.AddBeer("1234", "01/03/16", "bomber")
+	mine := NewBeerCellar("testremovefromcellar")
+	mine.AddBeer("1234", "01/01/16", "bomber")
+	mine.AddBeer("1235", "01/02/16", "bomber")
+	mine.AddBeer("1234", "01/03/16", "bomber")
 
-     mine.RemoveBeer(1234)
+	mine.RemoveBeer(1234)
 
-     if len(mine.bcellar[0].contents) != 2 {
-     	t.Errorf("Beer has not been removed: %v\n", mine)
-     }
+	if len(mine.bcellar[0].contents) != 2 {
+		t.Errorf("Beer has not been removed: %v\n", mine)
+	}
 }
 
 func TestSaveAndReload(t *testing.T) {
