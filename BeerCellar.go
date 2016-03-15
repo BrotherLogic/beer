@@ -215,6 +215,17 @@ func (cellar *BeerCellar) GetVersion() string {
 	return cellar.version
 }
 
+// AddBeerByDays adds beers by days to the cellar.
+func (cellar *BeerCellar) AddBeerByDays(id string, date string, size string, days string, count string) {
+	startDate, _ := time.Parse("02/01/06", date)
+	countVal, _ := strconv.Atoi(count)
+	daysVal, _ := strconv.Atoi(days)
+	for i := 0; i < countVal; i++ {
+		cellar.AddBeer(id, startDate.Format("02/01/06"), size)
+		startDate = startDate.AddDate(0, 0, daysVal)
+	}
+}
+
 // AddBeer adds the beer to the cellar
 func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
 	idNum, _ := strconv.Atoi(id)
@@ -348,10 +359,14 @@ func main() {
 	var beerid string
 	var drinkDate string
 	var size string
+	var days string
+	var count string
 	addBeerFlags := flag.NewFlagSet("add", flag.ContinueOnError)
 	addBeerFlags.StringVar(&beerid, "id", "-1", "ID of the beer")
 	addBeerFlags.StringVar(&drinkDate, "date", "", "Date to be drunk by")
 	addBeerFlags.StringVar(&size, "size", "", "Size of bottle")
+	addBeerFlags.StringVar(&days, "days", "", "Number of separate days")
+	addBeerFlags.StringVar(&count, "count", "", "Number of bottles")
 
 	var numBombers int
 	var numSmall int
