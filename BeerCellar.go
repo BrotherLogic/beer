@@ -22,33 +22,33 @@ type BeerCellar struct {
 
 // Sync syncs with untappd
 func (cellar *BeerCellar) Sync(fetcher httpResponseFetcher, converter responseConverter) {
-     drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
-     for _,val := range drunk {
-     	 log.Printf("Removing %v from cellar\n", val)
-     	 cellar.RemoveBeer(val)
-     }
+	drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
+	for _, val := range drunk {
+		log.Printf("Removing %v from cellar\n", val)
+		cellar.RemoveBeer(val)
+	}
 
-     cellar.syncTime = time.Now().Format("02/01/06")
+	cellar.syncTime = time.Now().Format("02/01/06")
 }
 
 // RemoveBeer removes a beer from the cellar
 func (cellar *BeerCellar) RemoveBeer(id int) {
-     cellarIndex := -1
-     cellarCost := -1
-     for i, c := range cellar.bcellar {
-     	 cost := c.GetRemoveCost(id)
-	 if cost >= 0 {
-	    if cellarIndex < 0 || cost < cellarCost {
-	       cellarIndex = i
-	       cellarCost = cost
-	    }
-	 }
-     }
+	cellarIndex := -1
+	cellarCost := -1
+	for i, c := range cellar.bcellar {
+		cost := c.GetRemoveCost(id)
+		if cost >= 0 {
+			if cellarIndex < 0 || cost < cellarCost {
+				cellarIndex = i
+				cellarCost = cost
+			}
+		}
+	}
 
-     if cellarIndex >= 0 {
-     log.Printf("Removing %v from %v\n", id, cellarIndex)
-     cellar.bcellar[cellarIndex].Remove(id)
-     }
+	if cellarIndex >= 0 {
+		log.Printf("Removing %v from %v\n", id, cellarIndex)
+		cellar.bcellar[cellarIndex].Remove(id)
+	}
 }
 
 // CountBeers returns the number of beers of a given id in the cellar
@@ -262,16 +262,16 @@ func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
 }
 
 func runSearch(command string, flags *flag.FlagSet, search string) {
-     if command == "search" {
-     	if flags.Parsed() {
-     	matches := Search(search)
-	for _, match := range matches {
-	    fmt.Printf("%v: %v\n", match.name, match.id)
+	if command == "search" {
+		if flags.Parsed() {
+			matches := Search(search)
+			for _, match := range matches {
+				fmt.Printf("%v: %v\n", match.name, match.id)
+			}
+		} else {
+			flags.PrintDefaults()
+		}
 	}
-     } else {
-       flags.PrintDefaults()
-}
-}
 }
 
 func runVersion(command string, cellar *BeerCellar) {
@@ -282,50 +282,56 @@ func runVersion(command string, cellar *BeerCellar) {
 
 func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, cellar *BeerCellar) {
 	if command == "add" {
-	   if flags.Parsed() {
-		box := cellar.AddBeer(id, date, size)
-		print := &StdOutPrint{}
-		box.PrintCellar(print)
+		if flags.Parsed() {
+			box := cellar.AddBeer(id, date, size)
+			print := &StdOutPrint{}
+			box.PrintCellar(print)
 		} else {
-		flags.PrintDefaults()
+			flags.PrintDefaults()
 		}
 	}
 }
 
-func runPrintCellar(command string,  cellar *BeerCellar) {
+func runPrintCellar(command string, cellar *BeerCellar) {
 	if command == "print" {
-			cellar.PrintCellar(&StdOutPrint{})
-	} 
+		cellar.PrintCellar(&StdOutPrint{})
+	}
+}
+
+func runSync(command string, cellar *BeerCellar) {
+	if command == "sync" {
+		cellar.Sync(mainFetcher{}, mainConverter{})
+	}
 }
 
 func runRemoveBeer(command string, flags *flag.FlagSet, id int, cellar *BeerCellar) {
-     if command == "remove" {
-     	if flags.Parsed() {
-	  cellar.RemoveBeer(id)
-	  cellar.PrintCellar(&StdOutPrint{})
+	if command == "remove" {
+		if flags.Parsed() {
+			cellar.RemoveBeer(id)
+			cellar.PrintCellar(&StdOutPrint{})
+		}
 	}
-     }
 }
 
 func runListBeers(command string, flags *flag.FlagSet, numBombers int, numSmall int, cellar *BeerCellar) {
 	if command == "list" {
-	   if flags.Parsed() {
-		cellar.PrintBeers(numBombers, numSmall)
+		if flags.Parsed() {
+			cellar.PrintBeers(numBombers, numSmall)
 		} else {
-		flags.PrintDefaults()
+			flags.PrintDefaults()
 		}
 	}
 }
 
 func runSaveUntappd(command string, flags *flag.FlagSet, key string, secret string, cellar *BeerCellar) {
 	if command == "untappd" {
-	   if flags.Parsed() {
-		cellar.SetUntappd(key, secret)
-		untappdKey = key
-		untappdSecret = secret
+		if flags.Parsed() {
+			cellar.SetUntappd(key, secret)
+			untappdKey = key
+			untappdSecret = secret
 		} else {
-		  flags.PrintDefaults()
-		  }
+			flags.PrintDefaults()
+		}
 	} else {
 		if cellar.untappdKey == "" {
 			//Set from environment variables
@@ -383,6 +389,7 @@ func main() {
 	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
 	runSearch(os.Args[1], searchFlags, search)
 	runRemoveBeer(os.Args[1], removeFlags, removeID, cellar)
+	runSync(os.Args[1], cellar)
 	cellar.Save()
 	SaveCache("prod_cache")
 }
