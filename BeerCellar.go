@@ -4,6 +4,7 @@ import "bufio"
 import "errors"
 import "flag"
 import "fmt"
+import "io/ioutil"
 import "log"
 import "os"
 import "strconv"
@@ -382,7 +383,12 @@ func runSaveUntappd(command string, flags *flag.FlagSet, key string, secret stri
 }
 
 func main() {
-	var beerid string
+
+     //Turn off logging
+     log.SetFlags(0)
+     log.SetOutput(ioutil.Discard)
+
+     var beerid string
 	var drinkDate string
 	var size string
 	var days string
