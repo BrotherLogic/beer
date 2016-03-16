@@ -3,6 +3,7 @@ package main
 import "flag"
 import "log"
 import "testing"
+import "time"
 
 func TestAddByDate(t *testing.T) {
 	mine := NewBeerCellar("testaddbydays")
@@ -140,6 +141,22 @@ func TestAddNoBeer(t *testing.T) {
 	}
 }
 
+func TestAddBeerWithNoDate(t *testing.T) {
+     mine := NewBeerCellar("testnodate")
+     testFlags := flag.NewFlagSet("madeup", flag.ContinueOnError)
+     testFlags.Parse(make([]string, 0))
+     runAddBeer("add", testFlags, "1234", "", "bomber", "", "", mine)
+
+     if mine.Size() != 1 {
+     	t.Errorf("Beer with no date has not been added: %v", mine)
+     }
+
+     now := time.Now().Format("02/01/06")
+     if mine.bcellar[0].contents[0].drinkDate != now {
+     	t.Errorf("Mismatch in add times %v but it's \"%v\"\n", now, mine.bcellar[0].contents[0].drinkDate)
+     }
+}
+
 func TestMain(t *testing.T) {
 	main()
 }
@@ -153,7 +170,7 @@ func TestRunSaveUntappd(t *testing.T) {
 }
 
 func TestRunAddBeer(t *testing.T) {
-	runAddBeer("add", flag.NewFlagSet("mock", flag.ExitOnError), "1234", "01/02/16", "bomber", NewBeerCellar("test"))
+	runAddBeer("add", flag.NewFlagSet("mock", flag.ExitOnError), "1234", "01/02/16", "bomber", "", "", NewBeerCellar("test"))
 }
 
 func TestRunPrintCellar(t *testing.T) {
