@@ -226,6 +226,18 @@ func (cellar *BeerCellar) AddBeerByDays(id string, date string, size string, day
 	}
 }
 
+// AddBeerByYears adds beers by years to the cellar.
+func (cellar *BeerCellar) AddBeerByYears(id string, date string, size string, years string, count string) {
+	startDate, _ := time.Parse("02/01/06", date)
+	countVal, _ := strconv.Atoi(count)
+	yearsVal, _ := strconv.Atoi(years)
+	for i := 0; i < countVal; i++ {
+		cellar.AddBeer(id, startDate.Format("02/01/06"), size)
+		startDate = startDate.AddDate(yearsVal, 0, 0)
+	}
+}
+
+
 // AddBeer adds the beer to the cellar
 func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
 	idNum, _ := strconv.Atoi(id)
