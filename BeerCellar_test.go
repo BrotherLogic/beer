@@ -23,6 +23,24 @@ func TestAddByDate(t *testing.T) {
 
 }
 
+func TestAddByYear(t *testing.T) {
+	mine := NewBeerCellar("testaddbydays")
+	mine.AddBeerByYears("1234", "01/01/16", "bomber", "1", "5")
+
+	if mine.Size() != 5 {
+		t.Errorf("Not enough beers added: %v\n", mine.Size())
+	}
+
+	if mine.bcellar[0].contents[0].drinkDate != "01/01/16" {
+		t.Errorf("Date on first entry is wrong: %v\n", mine.bcellar[0].contents[0].drinkDate)
+	}
+
+	if mine.bcellar[0].contents[1].drinkDate != "01/01/17" {
+		t.Errorf("Date on second entry is wrong: %v\n See cellar %v", mine.bcellar[0].contents[0].drinkDate, mine.bcellar[0])
+	}
+
+}
+
 func TestAddToCellars(t *testing.T) {
 	mine1 := NewBeerCellar("testaddcellar")
 	mine1.AddBeer("1234", "01/01/16", "bomber")
