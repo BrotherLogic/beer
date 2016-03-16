@@ -237,7 +237,6 @@ func (cellar *BeerCellar) AddBeerByYears(id string, date string, size string, ye
 	}
 }
 
-
 // AddBeer adds the beer to the cellar
 func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
 	idNum, _ := strconv.Atoi(id)
@@ -303,15 +302,21 @@ func runVersion(command string, cellar *BeerCellar) {
 	}
 }
 
-func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, days string, count string, cellar *BeerCellar) {
+func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, days string, years string, count string, cellar *BeerCellar) {
 	if command == "add" {
 		if flags.Parsed() {
-		   if date == "" {
-		      date = time.Now().Format("02/01/06")
-		   }
+			if date == "" {
+				date = time.Now().Format("02/01/06")
+			}
+
+			log.Printf("HERE %v and %v\n", days, years)
 
 			if days != "" {
 				cellar.AddBeerByDays(id, date, size, days, count)
+				cellar.PrintCellar(&StdOutPrint{})
+			} else if years != "" {
+				log.Printf("ADDING BY YEARS\n")
+				cellar.AddBeerByYears(id, date, size, years, count)
 				cellar.PrintCellar(&StdOutPrint{})
 			} else {
 				box := cellar.AddBeer(id, date, size)
@@ -381,12 +386,14 @@ func main() {
 	var drinkDate string
 	var size string
 	var days string
+	var years string
 	var count string
 	addBeerFlags := flag.NewFlagSet("add", flag.ContinueOnError)
 	addBeerFlags.StringVar(&beerid, "id", "-1", "ID of the beer")
 	addBeerFlags.StringVar(&drinkDate, "date", "", "Date to be drunk by")
 	addBeerFlags.StringVar(&size, "size", "", "Size of bottle")
 	addBeerFlags.StringVar(&days, "days", "", "Number of separate days")
+	addBeerFlags.StringVar(&years, "years", "", "Number of separate years")
 	addBeerFlags.StringVar(&count, "count", "", "Number of bottles")
 
 	var numBombers int
@@ -420,7 +427,7 @@ func main() {
 
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
 	runVersion(os.Args[1], cellar)
-	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, days, count, cellar)
+	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, days, years, count, cellar)
 	runPrintCellar(os.Args[1], cellar)
 	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
 	runSearch(os.Args[1], searchFlags, search)
