@@ -272,13 +272,13 @@ func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
 	fmt.Printf("Bombers\n")
 	fmt.Printf("-------\n")
 	for _, v := range bombers {
-		fmt.Printf("%v\n", v)
+		fmt.Printf("%v\n", GetBeerName(v.id))
 	}
 
 	fmt.Printf("Smalls\n")
 	fmt.Printf("-------\n")
 	for _, v := range smalls {
-		fmt.Printf("%v\n", v)
+		fmt.Printf("%v\n", GetBeerName(v.id))
 	}
 
 }
