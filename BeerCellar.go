@@ -291,12 +291,17 @@ func runVersion(command string, cellar *BeerCellar) {
 	}
 }
 
-func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, cellar *BeerCellar) {
+func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, days string, count string, cellar *BeerCellar) {
 	if command == "add" {
 		if flags.Parsed() {
-			box := cellar.AddBeer(id, date, size)
-			print := &StdOutPrint{}
-			box.PrintCellar(print)
+			if days != "" {
+				cellar.AddBeerByDays(id, date, size, days, count)
+				cellar.PrintCellar(&StdOutPrint{})
+			} else {
+				box := cellar.AddBeer(id, date, size)
+				print := &StdOutPrint{}
+				box.PrintCellar(print)
+			}
 		} else {
 			flags.PrintDefaults()
 		}
@@ -399,7 +404,7 @@ func main() {
 
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
 	runVersion(os.Args[1], cellar)
-	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, cellar)
+	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, days, count, cellar)
 	runPrintCellar(os.Args[1], cellar)
 	runListBeers(os.Args[1], listBeerFlags, numBombers, numSmall, cellar)
 	runSearch(os.Args[1], searchFlags, search)
