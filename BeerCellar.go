@@ -294,6 +294,10 @@ func runVersion(command string, cellar *BeerCellar) {
 func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, days string, count string, cellar *BeerCellar) {
 	if command == "add" {
 		if flags.Parsed() {
+		   if date == "" {
+		      date = time.Now().Format("02/01/06")
+		   }
+
 			if days != "" {
 				cellar.AddBeerByDays(id, date, size, days, count)
 				cellar.PrintCellar(&StdOutPrint{})
