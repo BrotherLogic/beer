@@ -262,7 +262,18 @@ func Min(a int, b int) int {
 func (cellar *BeerCellar) ListBeers(num int, btype string, date string) []Beer {
 	log.Printf("Cellar looks like %v\n", cellar.bcellar)
 	retList := MergeCellars(btype, cellar.bcellar...)
-	return retList[:Min(len(retList), num)]
+
+	pointer := -1
+	for i, v := range retList {
+	    if i < num && IsAfter(v.drinkDate, date) {
+	       pointer = i
+	    } else {
+	      log.Printf("%v, %v and %v %v isAfter %v\n", i, num, v.drinkDate, date, IsAfter(v.drinkDate, date))
+	    }
+	}
+
+
+	return retList[:pointer+1]
 }
 
 // PrintBeers prints out the beers of a given type
