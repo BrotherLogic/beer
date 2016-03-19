@@ -11,6 +11,7 @@ import "strconv"
 import "strings"
 import "time"
 
+
 // BeerCellar the overall beer cellar
 type BeerCellar struct {
 	version       string
