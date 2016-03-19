@@ -259,16 +259,28 @@ func Min(a int, b int) int {
 }
 
 // ListBeers lists the cellared beers of a given type
-func (cellar *BeerCellar) ListBeers(num int, btype string) []Beer {
+func (cellar *BeerCellar) ListBeers(num int, btype string, date string) []Beer {
 	log.Printf("Cellar looks like %v\n", cellar.bcellar)
 	retList := MergeCellars(btype, cellar.bcellar...)
-	return retList[:Min(len(retList), num)]
+
+	pointer := -1
+	for i, v := range retList {
+	    if i < num && IsAfter(v.drinkDate, date) {
+	       pointer = i
+	    } else {
+	      log.Printf("%v, %v and %v %v isAfter %v\n", i, num, v.drinkDate, date, IsAfter(v.drinkDate, date))
+	    }
+	}
+
+
+	return retList[:pointer+1]
 }
 
 // PrintBeers prints out the beers of a given type
 func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
-	bombers := cellar.ListBeers(numBombers, "bomber")
-	smalls := cellar.ListBeers(numSmall, "small")
+     now := time.Now().Format("02/01/06")
+	bombers := cellar.ListBeers(numBombers, "bomber", now)
+	smalls := cellar.ListBeers(numSmall, "small", now)
 
 	fmt.Printf("Bombers\n")
 	fmt.Printf("-------\n")
