@@ -20,7 +20,17 @@ func TestAddByDate(t *testing.T) {
 	if mine.bcellar[0].contents[1].drinkDate != "15/01/16" {
 		t.Errorf("Date on second entry is wrong: %v\n See cellar %v", mine.bcellar[0].contents[0].drinkDate, mine.bcellar[0])
 	}
+}
 
+func TestListBeers(t *testing.T) {
+     mine := NewBeerCellar("testlistbeers")
+     mine.AddBeer("1234", "01/05/16", "bomber")
+     mine.AddBeer("1234", "01/01/16", "bomber")
+
+     beers := mine.ListBeers(2, "bomber", "01/02/16")
+     if len(beers) != 1 || beers[0].id != 1234 {
+     	t.Errorf("Returned beers are not correct: %v\n", beers)
+     }
 }
 
 func TestAddByYear(t *testing.T) {
