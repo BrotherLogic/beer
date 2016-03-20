@@ -1,7 +1,9 @@
 package main
 
+
 import "bufio"
 import "encoding/json"
+import "errors"
 import "fmt"
 import "log"
 import "net/http"
@@ -71,6 +73,11 @@ func init() {
 	beerMap = make(map[int]string)
 }
 
+//Prep prepares the cache for use
+func Prep(){
+     beerMap = make(map[int]string)
+}
+
 // LoadCache - loads the cache from a given file
 func LoadCache(folder string) {
 	fileName := folder + "/untappd.metadata"
@@ -129,7 +136,7 @@ func getBeerPage(fetcher httpResponseFetcher, converter responseConverter, id in
 }
 
 func getVenuePage(fetcher httpResponseFetcher, converter responseConverter, id int) string {
-	url := "https://api.untappd.com/v4/venue/info/VID?client_id=CLIENTID&client_secret=CLIENTSECRET&compact=true"
+	url := "https://api.untappd.com/v4/venue/info/VID?client_id=CLIENTID&client_secret=CLIENTSECRET"
 	url = strings.Replace(url, "VID", strconv.Itoa(id), 1)
 	url = strings.Replace(url, "CLIENTID", untappdKey, 1)
 	url = strings.Replace(url, "CLIENTSECRET", untappdSecret, 1)
@@ -173,16 +180,25 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 }
 
 func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error) {
+     log.Printf("RUNNING\n")
+
 	var mapper map[string]interface{}
 	var values []Beer
 	err := unmarshaller.Unmarshal([]byte(page), &mapper)
 	if err != nil {
-		log.Printf("%q\n", err)
+		log.Printf("ERROR: %q\n", err)
 		return values, err
+	}
+	
+	meta := mapper["meta"].(map[string]interface{})
+	metaCode := int(meta["code"].(float64))
+	if metaCode != 200 {
+	   return values, errors.New("Couldn't retrieve drinks")
 	}
 
 	response := mapper["response"].(map[string]interface{})
-	checkins := response["checkins"].(map[string]interface{})
+	venue := response["venue"].(map[string]interface{})
+	checkins := venue["checkins"].(map[string]interface{})
 	items := checkins["items"].([]interface{})
 
 	for _, v := range items {
@@ -204,11 +220,7 @@ func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, d
      var ret []int
 
      text := getVenuePage(fetcher, converter, 2194560)
-     drinks, err := convertPageToDrinks(text, unmarshaller)
-
-     if err != nil {
-     	return ret
-     }
+     drinks, _ := convertPageToDrinks(text, unmarshaller)
 
      for _, k := range drinks {
      	 if IsAfter(date, k.drinkDate) {
@@ -218,6 +230,7 @@ func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, d
 
      return ret
 }
+
 
 // GetBeerName Determines the name of the beer from the id
 func GetBeerName(id int) string {
