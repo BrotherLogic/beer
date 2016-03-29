@@ -24,6 +24,7 @@ type BeerCellar struct {
 // Sync syncs with untappd
 func (cellar *BeerCellar) Sync(fetcher httpResponseFetcher, converter responseConverter) {
 	drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
+	log.Printf("Found these: %v\n", drunk)
 	for _, val := range drunk {
 		log.Printf("Removing %v from cellar\n", val)
 		cellar.RemoveBeer(val)
