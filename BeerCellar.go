@@ -15,6 +15,7 @@ import "time"
 type BeerCellar struct {
 	version       string
 	name          string
+	dir           string
 	syncTime      string
 	untappdKey    string
 	untappdSecret string
@@ -95,7 +96,7 @@ func (cellar BeerCellar) Save() {
 	}
 
 	//Also save the metadata
-	fileName := cellar.name + ".metadata"
+	fileName := cleanDirName(cellar.dir) + cellar.name + ".metadata"
 	f, err := os.Create(fileName)
 	if err != nil {
 		log.Printf("Error saving metadata file: %v\n", fileName)
@@ -146,24 +147,32 @@ func (cellar BeerCellar) GetEmptyCellarCount() int {
 	return count
 }
 
+func cleanDirName(name string) string {
+	if len(name) > 0 && name[len(name)-1] != '/' {
+		return name + "/"
+	}
+	return name
+}
+
 // LoadBeerCellar loads a set of beer cellar files
-func LoadBeerCellar(name string) (*BeerCellar, error) {
+func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 
 	bc := BeerCellar{
 		version: "0.1",
 		name:    name,
+		dir:     dirname,
 		bcellar: make([]Cellar, 0),
 	}
 
 	for i := 1; i < 9; i++ {
-		tcellar := BuildCellar(name + strconv.Itoa(i) + ".cellar")
+		tcellar := BuildCellar(cleanDirName(dirname) + name + strconv.Itoa(i) + ".cellar")
 		if tcellar != nil {
 			bc.bcellar = append(bc.bcellar, *tcellar)
 		}
 	}
 
 	// Load in the metadata
-	fileName := name + ".metadata"
+	fileName := cleanDirName(dirname) + name + ".metadata"
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Printf("Error opening file: %v - %v\n", fileName, err)
@@ -188,28 +197,29 @@ func LoadBeerCellar(name string) (*BeerCellar, error) {
 }
 
 // NewBeerCellar creates new beer cellar
-func NewBeerCellar(name string) *BeerCellar {
+func NewBeerCellar(name string, dirname string) *BeerCellar {
 	bc := BeerCellar{
 		version:  "0.1",
 		name:     name,
+		dir:      dirname,
 		syncTime: time.Now().Format("02/01/06"),
 		bcellar:  make([]Cellar, 0),
 	}
 
 	for i := 1; i < 9; i++ {
-		bc.bcellar = append(bc.bcellar, NewCellar(name+strconv.Itoa(i)+".cellar"))
+		bc.bcellar = append(bc.bcellar, NewCellar(cleanDirName(dirname)+name+strconv.Itoa(i)+".cellar"))
 	}
 
 	return &bc
 }
 
 // LoadOrNewBeerCellar loads or creates a new BeerCellar
-func LoadOrNewBeerCellar(name string) (*BeerCellar, error) {
-	if _, err := os.Stat(name + ".metadata"); err == nil {
-		return LoadBeerCellar(name)
+func LoadOrNewBeerCellar(name string, dirname string) (*BeerCellar, error) {
+	if _, err := os.Stat(cleanDirName(dirname) + name + ".metadata"); err == nil {
+		return LoadBeerCellar(name, dirname)
 	}
 
-	return NewBeerCellar(name), nil
+	return NewBeerCellar(name, dirname), nil
 }
 
 // GetVersion gets the version of the cellar code
@@ -441,12 +451,13 @@ func main() {
 	removeFlags.IntVar(&removeID, "id", 0, "The ID of the beer to be removed")
 
 	cellarName := "prod"
+	dirName := "~/.beer/"
 
 	addBeerFlags.Parse(os.Args[2:])
 	listBeerFlags.Parse(os.Args[2:])
 	saveUntappdFlags.Parse(os.Args[2:])
 	searchFlags.Parse(os.Args[2:])
-	cellar, _ := LoadOrNewBeerCellar(cellarName)
+	cellar, _ := LoadOrNewBeerCellar(cellarName, dirName)
 	LoadCache("prod_cache")
 
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)

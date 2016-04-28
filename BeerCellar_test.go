@@ -1,12 +1,29 @@
 package main
 
 import "flag"
+import "io/ioutil"
 import "log"
+import "os"
 import "testing"
 import "time"
 
+func TestSaveDirectory(t *testing.T) {
+	tDir, _ := ioutil.TempDir("", "cellar_test")
+
+	defer os.RemoveAll(tDir)
+	mine := NewBeerCellar("testcellar", tDir)
+	mine.AddBeer("1234", "01/05/16", "bomber")
+	mine.Save()
+
+	//There should be some files in the temp directory
+	files, _ := ioutil.ReadDir(tDir)
+	if len(files) < 2 {
+		t.Errorf("Not enough files in the temp dir %v (%v)", files, tDir)
+	}
+}
+
 func TestCountBeers(t *testing.T) {
-	mine := NewBeerCellar("testaddbydays")
+	mine := NewBeerCellar("testaddbydays", "")
 	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")
 	mine.AddBeerByDays("2234", "01/01/16", "small", "14", "7")
 
@@ -20,7 +37,7 @@ func TestCountBeers(t *testing.T) {
 }
 
 func TestAddByDate(t *testing.T) {
-	mine := NewBeerCellar("testaddbydays")
+	mine := NewBeerCellar("testaddbydays", "")
 	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")
 
 	if mine.Size() != 5 {
@@ -37,7 +54,7 @@ func TestAddByDate(t *testing.T) {
 }
 
 func TestListBeers(t *testing.T) {
-	mine := NewBeerCellar("testlistbeers")
+	mine := NewBeerCellar("testlistbeers", "")
 	mine.AddBeer("1234", "01/05/16", "bomber")
 	mine.AddBeer("1234", "01/01/16", "bomber")
 
@@ -48,7 +65,7 @@ func TestListBeers(t *testing.T) {
 }
 
 func TestAddByYear(t *testing.T) {
-	mine := NewBeerCellar("testaddbydays")
+	mine := NewBeerCellar("testaddbydays", "")
 	mine.AddBeerByYears("1234", "01/01/16", "bomber", "1", "5")
 
 	if mine.Size() != 5 {
@@ -66,7 +83,7 @@ func TestAddByYear(t *testing.T) {
 }
 
 func TestAddToCellars(t *testing.T) {
-	mine1 := NewBeerCellar("testaddcellar")
+	mine1 := NewBeerCellar("testaddcellar", "")
 	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.AddBeer("1234", "01/01.15", "bomber")
 
@@ -75,8 +92,15 @@ func TestAddToCellars(t *testing.T) {
 	}
 }
 
+func TestFailToLoad(t *testing.T) {
+	_, err := LoadBeerCellar("madeup", "madeup")
+	if err == nil {
+		t.Errorf("Made up beer cellar was loaded :-(")
+	}
+}
+
 func TestSyncAndSave(t *testing.T) {
-	mine := NewBeerCellar("testsync")
+	mine := NewBeerCellar("testsync", "")
 	mine.AddBeer("1234", "01/01/16", "bomber")
 	mine.AddBeer("791939", "01/02/16", "bomber")
 	mine.AddBeer("1234", "01/03/16", "bomber")
@@ -85,7 +109,7 @@ func TestSyncAndSave(t *testing.T) {
 	mine.Sync(blankVenuePageFetcher{}, venuePageConverter{})
 	mine.Save()
 
-	mine2, err := LoadBeerCellar("testsync")
+	mine2, err := LoadBeerCellar("testsync", "")
 	if err != nil {
 		t.Errorf("Error loading cellar: %v", err)
 	}
@@ -100,7 +124,7 @@ func TestSyncAndSave(t *testing.T) {
 }
 
 func TestRemoveFromCellar(t *testing.T) {
-	mine := NewBeerCellar("testremovefromcellar")
+	mine := NewBeerCellar("testremovefromcellar", "")
 	mine.AddBeer("1234", "01/01/16", "bomber")
 	mine.AddBeer("1235", "01/02/16", "bomber")
 	mine.AddBeer("1234", "01/03/16", "bomber")
@@ -113,48 +137,48 @@ func TestRemoveFromCellar(t *testing.T) {
 }
 
 func TestSaveAndReload(t *testing.T) {
-	mine1, _ := LoadOrNewBeerCellar("cellar1")
+	mine1, _ := LoadOrNewBeerCellar("cellar1", "")
 	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.Save()
 
-	mine2, _ := LoadOrNewBeerCellar("cellar1")
+	mine2, _ := LoadOrNewBeerCellar("cellar1", "")
 	if mine2.Size() == 0 {
 		t.Errorf("Cellar is not being reloaded correctly\n")
 	}
 }
 
 func TestForClobbering(t *testing.T) {
-	mine1 := NewBeerCellar("cellar1")
-	mine2 := NewBeerCellar("cellar2")
+	mine1 := NewBeerCellar("cellar1", "")
+	mine2 := NewBeerCellar("cellar2", "")
 
 	mine1.AddBeer("1234", "01/01/16", "bomber")
 	mine1.Save()
 
-	t1, _ := LoadBeerCellar("cellar1")
+	t1, _ := LoadBeerCellar("cellar1", "")
 	if t1.Size() != 1 {
 		t.Errorf("Cellar is missized on first load: %v\n", t1.Size())
 	}
 
 	mine2.Save()
-	t2, _ := LoadBeerCellar("cellar1")
+	t2, _ := LoadBeerCellar("cellar1", "")
 	if t2.Size() != 1 {
 		t.Errorf("Cellar is missized on second load: %v\n", t2.Size())
 	}
 }
 
 func TestGetSyncTime(t *testing.T) {
-	mine := NewBeerCellar("testing")
+	mine := NewBeerCellar("testing", "")
 	mine.syncTime = "01/01/16"
 	mine.Save()
 
-	mine2, _ := LoadBeerCellar("testing")
+	mine2, _ := LoadBeerCellar("testing", "")
 	if mine2.syncTime != "01/01/16" {
 		t.Errorf("BeerCellar is not saving the sync date\n")
 	}
 }
 
 func TestGetVersion(t *testing.T) {
-	mine := NewBeerCellar("test")
+	mine := NewBeerCellar("test", "")
 	version := mine.GetVersion()
 	if len(version) == 0 {
 		t.Errorf("Version %q is not legit\n", version)
@@ -162,29 +186,29 @@ func TestGetVersion(t *testing.T) {
 }
 
 func TestAddBeer(t *testing.T) {
-	mine := NewBeerCellar("test")
+	mine := NewBeerCellar("test", "")
 	mine.AddBeer("1234", "01/01/16", "bomber")
 	mine.Save()
 
-	mine2, _ := LoadBeerCellar("test")
+	mine2, _ := LoadBeerCellar("test", "")
 	if mine2.Size() != mine.Size() && mine2.Size() == 1 {
 		t.Errorf("Size on reload is incorrect %v vs %v\n", mine.Size(), mine2.Size())
 	}
 }
 
 func TestAddNoBeer(t *testing.T) {
-	mine := NewBeerCellar("test")
+	mine := NewBeerCellar("test", "")
 	mine.AddBeer("-1", "01/01/16", "bomber")
 	mine.Save()
 
-	mine2, _ := LoadBeerCellar("test")
+	mine2, _ := LoadBeerCellar("test", "")
 	if mine2.Size() != 0 {
 		t.Errorf("Error on adding no beer - %v but %v\n", mine.Size(), mine2.Size())
 	}
 }
 
 func TestAddBeerWithNoDate(t *testing.T) {
-	mine := NewBeerCellar("testnodate")
+	mine := NewBeerCellar("testnodate", "")
 	testFlags := flag.NewFlagSet("madeup", flag.ContinueOnError)
 	testFlags.Parse(make([]string, 0))
 	runAddBeer("add", testFlags, "1234", "", "bomber", "", "", "", mine)
@@ -199,12 +223,8 @@ func TestAddBeerWithNoDate(t *testing.T) {
 	}
 }
 
-func TestMain(t *testing.T) {
-	main()
-}
-
 func TestRunVersion(t *testing.T) {
-	runVersion("version", NewBeerCellar("test"))
+	runVersion("version", NewBeerCellar("test", ""))
 }
 
 func TestRunSearchNoParse(t *testing.T) {
@@ -220,58 +240,58 @@ func TestRunSearch(t *testing.T) {
 
 func TestRunSync(t *testing.T) {
 	Prep()
-	runSync("sync", NewBeerCellar("testing"))
+	runSync("sync", NewBeerCellar("testing", ""))
 }
 
 func TestRunRemove(t *testing.T) {
-	cellar := NewBeerCellar("testremove")
+	cellar := NewBeerCellar("testremove", "")
 	flagset := flag.NewFlagSet("blah", flag.ExitOnError)
 	flagset.Parse(make([]string, 0))
 	runRemoveBeer("remove", flagset, 1234, cellar)
 }
 
 func TestRunSaveUntappdNoParse(t *testing.T) {
-	runSaveUntappd("untappd", flag.NewFlagSet("blah", flag.ExitOnError), "testkey", "testsecret", NewBeerCellar("untappdtest"))
+	runSaveUntappd("untappd", flag.NewFlagSet("blah", flag.ExitOnError), "testkey", "testsecret", NewBeerCellar("untappdtest", ""))
 }
 
 func TestRunSaveUntappd(t *testing.T) {
 	flagset := flag.NewFlagSet("blah", flag.ExitOnError)
 	flagset.Parse(make([]string, 0))
-	runSaveUntappd("untappd", flagset, "testkey", "testsecret", NewBeerCellar("untappdtest"))
+	runSaveUntappd("untappd", flagset, "testkey", "testsecret", NewBeerCellar("untappdtest", ""))
 }
 
 func TestRunSaveUntappdPullFromCellar(t *testing.T) {
-	cellar := NewBeerCellar("untappdtest")
+	cellar := NewBeerCellar("untappdtest", "")
 	cellar.untappdKey = "madeupkey"
 	cellar.untappdSecret = "madeupsecret"
 	runSaveUntappd("untappdadd", flag.NewFlagSet("blah", flag.ExitOnError), "testkey", "testsecret", cellar)
 }
 
 func TestRunAddBeerNoSearch(t *testing.T) {
-	runAddBeer("add", flag.NewFlagSet("mock", flag.ExitOnError), "", "01/02/16", "bomber", "", "", "", NewBeerCellar("test"))
+	runAddBeer("add", flag.NewFlagSet("mock", flag.ExitOnError), "", "01/02/16", "bomber", "", "", "", NewBeerCellar("test", ""))
 }
 
 func TestRunAddBeer(t *testing.T) {
 	flaggers := flag.NewFlagSet("mock", flag.ExitOnError)
 	flaggers.Parse(make([]string, 0))
-	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "", "", "", NewBeerCellar("test"))
-	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "15", "", "1", NewBeerCellar("test"))
-	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "", "15", "1", NewBeerCellar("test"))
+	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "", "", "", NewBeerCellar("test", ""))
+	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "15", "", "1", NewBeerCellar("test", ""))
+	runAddBeer("add", flaggers, "1234", "01/02/16", "bomber", "", "15", "1", NewBeerCellar("test", ""))
 }
 
 func TestRunPrintCellar(t *testing.T) {
-	runPrintCellar("print", NewBeerCellar("test"))
+	runPrintCellar("print", NewBeerCellar("test", ""))
 }
 
 func TestRunListBeers(t *testing.T) {
 	flagset := flag.NewFlagSet("mock", flag.ExitOnError)
 	flagset.Parse(make([]string, 0))
-	runListBeers("list", flagset, 5, 5, NewBeerCellar("test"))
+	runListBeers("list", flagset, 5, 5, NewBeerCellar("test", ""))
 }
 
 func TestRunListBeersNoParse(t *testing.T) {
 	flagset := flag.NewFlagSet("mock", flag.ExitOnError)
-	runListBeers("list", flagset, 5, 5, NewBeerCellar("test"))
+	runListBeers("list", flagset, 5, 5, NewBeerCellar("test", ""))
 }
 
 func TestMin(t *testing.T) {
@@ -280,15 +300,19 @@ func TestMin(t *testing.T) {
 	}
 }
 
+func TestMain(t *testing.T) {
+	main()
+}
+
 func TestGetNumberOfCellars(t *testing.T) {
-	bc := NewBeerCellar("test")
+	bc := NewBeerCellar("test", "")
 	if bc.GetNumberOfCellars() != 8 {
 		t.Errorf("Wrong number of cellars: %d\n", bc.GetNumberOfCellars())
 	}
 }
 
 func TestAddToCellar(t *testing.T) {
-	cellar := NewBeerCellar("test")
+	cellar := NewBeerCellar("test", "")
 	beer1, _ := NewBeer("1234~01/01/16~bomber")
 	beer2, _ := NewBeer("1234~01/02/16~bomber")
 	beer3, _ := NewBeer("1234~01/03/16~bomber")
@@ -303,7 +327,7 @@ func TestAddToCellar(t *testing.T) {
 }
 
 func TestPrintOutBeerCellar(t *testing.T) {
-	cellar := NewBeerCellar("test")
+	cellar := NewBeerCellar("test", "")
 	beer1, _ := NewBeer("1234~01/01/16~bomber")
 	beer2, _ := NewBeer("1234~01/02/16~bomber")
 	beer3, _ := NewBeer("1234~01/03/16~bomber")
@@ -321,7 +345,7 @@ func TestPrintOutBeerCellar(t *testing.T) {
 }
 
 func TestSaveBeerCellar(t *testing.T) {
-	cellar := NewBeerCellar("test")
+	cellar := NewBeerCellar("test", "")
 	beer1, _ := NewBeer("1234~01/01/16~bomber")
 	beer2, _ := NewBeer("1234~01/02/16~bomber")
 	beer3, err := NewBeer("1234~01/03/16~bomber")
@@ -336,27 +360,20 @@ func TestSaveBeerCellar(t *testing.T) {
 
 	cellar.Save()
 
-	cellar2, _ := LoadBeerCellar("test")
+	cellar2, _ := LoadBeerCellar("test", "")
 	if cellar2.Size() != cellar.Size() {
 		t.Errorf("Mismatched sizes %v and %v\n", cellar.Size(), cellar2.Size())
 	}
 }
 
 func TestSaveBadBeerCellar(t *testing.T) {
-	cellar := NewBeerCellar("madeupdirectory/blah")
+	cellar := NewBeerCellar("madeupdirectory/blah", "")
 	cellar.Save()
-}
-
-func TestLoadBadBeerCellar(t *testing.T) {
-	_, err := LoadBeerCellar("madeupdirectory/blah")
-	if err == nil {
-		t.Errorf("No Error on opening bad cellar\n")
-	}
 }
 
 func TestPrintBeers(t *testing.T) {
 	log.Printf("Starting Here\n")
-	cellar := NewBeerCellar("test")
+	cellar := NewBeerCellar("test", "")
 	beer1, _ := NewBeer("1234~12/05/12~bomber")
 	beer2, _ := NewBeer("1235~12/05/12~small")
 	cellar.AddBeerToCellar(beer1)
@@ -365,11 +382,11 @@ func TestPrintBeers(t *testing.T) {
 }
 
 func TestGetUntappdKeys(t *testing.T) {
-	cellar := NewBeerCellar("uttest")
+	cellar := NewBeerCellar("uttest", "")
 	cellar.SetUntappd("testkey", "testsecret")
 	cellar.Save()
 
-	cellar2, _ := LoadOrNewBeerCellar("uttest")
+	cellar2, _ := LoadOrNewBeerCellar("uttest", "")
 
 	key, secret := cellar2.GetUntappd()
 	if key != "testkey" || secret != "testsecret" {

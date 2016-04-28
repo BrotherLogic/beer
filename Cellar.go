@@ -34,26 +34,26 @@ func NewCellar(cname string) Cellar {
 
 // Remove removes a beer from the cellar
 func (cellar *Cellar) Remove(id int) {
-     removeIndex := -1
-     for i, v := range cellar.contents {
-     	 if v.id == id {
-	    removeIndex = i
-	    break
-	 }
-     }
+	removeIndex := -1
+	for i, v := range cellar.contents {
+		if v.id == id {
+			removeIndex = i
+			break
+		}
+	}
 
-     cellar.contents = append(cellar.contents[:removeIndex], cellar.contents[removeIndex+1:]...)
+	cellar.contents = append(cellar.contents[:removeIndex], cellar.contents[removeIndex+1:]...)
 }
 
 // GetRemoveCost computes the cost of removing a beer from the cellar
 func (cellar *Cellar) GetRemoveCost(id int) int {
-     for i, beer := range cellar.contents {
-     	 if beer.id == id {
-	    return i
-	 }
-     }
+	for i, beer := range cellar.contents {
+		if beer.id == id {
+			return i
+		}
+	}
 
-     return -1
+	return -1
 }
 
 // CountBeersInCellar counts the number of beers in the cellar
