@@ -36,15 +36,14 @@ func (fetcher stubFailFetcher) Fetch(url string) (*http.Response, error) {
 type blankVenuePageFetcher struct{}
 
 func (fetcher blankVenuePageFetcher) Fetch(url string) (*http.Response, error) {
-     return &http.Response{}, nil
+	return &http.Response{}, nil
 }
 
 type venuePageConverter struct{}
 
 func (converter venuePageConverter) Convert(response *http.Response) ([]byte, error) {
-     return []byte(mockVenuePage), nil
+	return []byte(mockVenuePage), nil
 }
-
 
 func TestGetBeerName(t *testing.T) {
 	untappdKey = os.Getenv("CLIENTID")
@@ -56,14 +55,14 @@ func TestGetBeerName(t *testing.T) {
 }
 
 func TestSearch(t *testing.T) {
-     beerMap = make(map[int] string)
-     cacheBeer(1234,"Testing Beer")
-     cacheBeer(1235,"Made up Thing")
+	beerMap = make(map[int]string)
+	cacheBeer(1234, "Testing Beer")
+	cacheBeer(1235, "Made up Thing")
 
-     matches := Search("eer")
-     if len(matches) != 1 {
-     	t.Errorf("Wrong number of matches returned :%v should have been 1, given %v", len(matches), beerMap)
-     }
+	matches := Search("eer")
+	if len(matches) != 1 {
+		t.Errorf("Wrong number of matches returned :%v should have been 1, given %v", len(matches), beerMap)
+	}
 }
 
 func TestGetBeerPage(t *testing.T) {
@@ -87,24 +86,24 @@ func TestGetVenuePage(t *testing.T) {
 }
 
 func TestGetRecentDrinks(t *testing.T) {
-     var fetcher = blankVenuePageFetcher{}
-     var converter = venuePageConverter{}
-     drinks := GetRecentDrinks(fetcher, converter, "01/01/13")
+	var fetcher = blankVenuePageFetcher{}
+	var converter = venuePageConverter{}
+	drinks := GetRecentDrinks(fetcher, converter, "01/01/13")
 
-     if len(drinks) != 15 {
-     	t.Errorf("Not enough drinks processed %v\n", len(drinks))
-     }
+	if len(drinks) != 15 {
+		t.Errorf("Not enough drinks processed %v\n", len(drinks))
+	}
 
-     found := false
-     for _, v := range drinks {
-     	 if v == 791939 {
-	    found = true
-	 }
-     }
+	found := false
+	for _, v := range drinks {
+		if v == 791939 {
+			found = true
+		}
+	}
 
-if !found {
-   t.Errorf("Beer drunk was not found: %v\n", drinks)
-} 
+	if !found {
+		t.Errorf("Beer drunk was not found: %v\n", drinks)
+	}
 }
 
 func TestGetBeerFromCache(t *testing.T) {
@@ -130,6 +129,7 @@ func TestCacheFail(t *testing.T) {
 	untappdSecret = ""
 	cacheBeer(7936, "Firestone Walker Brewing Company - Parabola")
 	SaveCache("madeup_folder/makeup_folder2")
+	LoadCache("madeup_folder/makeup_folder2")
 }
 
 func TestGetBeerFromSavedCache(t *testing.T) {
