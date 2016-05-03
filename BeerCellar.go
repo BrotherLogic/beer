@@ -154,6 +154,22 @@ func cleanDirName(name string) string {
 	return name
 }
 
+func (cellar BeerCellar) printDiff() {
+	//Reload cellar from disk
+	othercellar, err := LoadBeerCellar(cellar.name, cellar.dir)
+
+	//Diff each cellar
+	if err == nil {
+		for i := 0; i < 8; i++ {
+			diffs := cellar.bcellar[0].Diff(othercellar.bcellar[0])
+
+			for j := 0; j < len(diffs); j++ {
+				fmt.Printf(diffs[j])
+			}
+		}
+	}
+}
+
 // LoadBeerCellar loads a set of beer cellar files
 func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 
@@ -351,6 +367,8 @@ func runAddBeer(command string, flags *flag.FlagSet, id string, date string, siz
 			flags.PrintDefaults()
 		}
 	}
+
+	cellar.printDiff()
 }
 
 func runPrintCellar(command string, cellar *BeerCellar) {
@@ -468,6 +486,7 @@ func main() {
 	runSearch(os.Args[1], searchFlags, search)
 	runRemoveBeer(os.Args[1], removeFlags, removeID, cellar)
 	runSync(os.Args[1], cellar)
+
 	cellar.Save()
 	SaveCache("prod_cache")
 }
