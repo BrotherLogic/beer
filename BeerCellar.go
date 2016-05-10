@@ -478,8 +478,6 @@ func main() {
 	cellar, _ := LoadOrNewBeerCellar(cellarName, dirName)
 	LoadCache("prod_cache")
 
-	fmt.Printf("Here %v", cellar)
-
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
 	runVersion(os.Args[1], cellar)
 	runAddBeer(os.Args[1], addBeerFlags, beerid, drinkDate, size, days, years, count, cellar)
