@@ -426,8 +426,8 @@ func runSaveUntappd(command string, flags *flag.FlagSet, key string, secret stri
 func main() {
 
 	//Turn off logging
-	//log.SetFlags(0)
-	//log.SetOutput(ioutil.Discard)
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
 
 	var beerid string
 	var drinkDate string
@@ -477,6 +477,8 @@ func main() {
 	searchFlags.Parse(os.Args[2:])
 	cellar, _ := LoadOrNewBeerCellar(cellarName, dirName)
 	LoadCache("prod_cache")
+
+	fmt.Printf("Here %v", cellar)
 
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
 	runVersion(os.Args[1], cellar)
