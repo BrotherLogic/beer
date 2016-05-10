@@ -174,7 +174,7 @@ func (cellar BeerCellar) printDiff() {
 func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 
 	bc := BeerCellar{
-		version: "0.1",
+		version: "0.2",
 		name:    name,
 		dir:     dirname,
 		bcellar: make([]Cellar, 0),
