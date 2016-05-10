@@ -426,8 +426,8 @@ func runSaveUntappd(command string, flags *flag.FlagSet, key string, secret stri
 func main() {
 
 	//Turn off logging
-	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
+	//log.SetFlags(0)
+	//log.SetOutput(ioutil.Discard)
 
 	var beerid string
 	var drinkDate string
