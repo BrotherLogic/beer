@@ -22,6 +22,14 @@ func TestSaveDirectory(t *testing.T) {
 	}
 }
 
+func TestRunDiff(t *testing.T) {
+	mine := NewBeerCellar("testingdiff", "")
+	mine.Save()
+
+	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")
+	mine.printDiff()
+}
+
 func TestCountBeers(t *testing.T) {
 	mine := NewBeerCellar("testaddbydays", "")
 	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")

@@ -32,6 +32,42 @@ func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0, 30)}
 }
 
+// Diff performs a diff between two cellars
+func (cellar *Cellar) Diff(cellar2 Cellar) []string {
+	var diffs []string
+
+	pointer1 := 0
+	pointer2 := 0
+
+	for pointer1 < cellar.Size() && pointer2 < cellar2.Size() {
+		if cellar.contents[pointer1] == cellar2.contents[pointer2] {
+			diffs = append(diffs, cellar.contents[pointer1].Name())
+			pointer1++
+			pointer2++
+		} else {
+			if cellar.contents[pointer1].IsAfter(cellar2.contents[pointer2]) {
+				diffs = append(diffs, "+ "+cellar.contents[pointer1].Name())
+				pointer1++
+			} else {
+				diffs = append(diffs, "- "+cellar2.contents[pointer2].Name())
+				pointer2++
+			}
+		}
+	}
+
+	for pointer1 < cellar.Size() {
+		diffs = append(diffs, "+ "+cellar.contents[pointer1].Name())
+		pointer1++
+	}
+
+	for pointer2 < cellar2.Size() {
+		diffs = append(diffs, "- "+cellar2.contents[pointer2].Name())
+		pointer2++
+	}
+
+	return diffs
+}
+
 // Remove removes a beer from the cellar
 func (cellar *Cellar) Remove(id int) {
 	removeIndex := -1
