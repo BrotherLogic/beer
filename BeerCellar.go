@@ -360,6 +360,7 @@ func runVersion(command string, cellar *BeerCellar) {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
 		fmt.Printf("Loaded From: %v\n", cellar.dir)
 		fmt.Printf("Code checkpoint 0.1\n")
+		fmt.Printf("Cache location %v", cellar.dir+"prod_cache")
 	}
 }
 
@@ -498,7 +499,7 @@ func main() {
 	saveUntappdFlags.Parse(os.Args[2:])
 	searchFlags.Parse(os.Args[2:])
 	cellar, _ := LoadOrNewBeerCellar(cellarName, dirName)
-	LoadCache("prod_cache")
+	LoadCache(dirName + "prod_cache")
 
 	runSaveUntappd(os.Args[1], saveUntappdFlags, key, secret, cellar)
 	runVersion(os.Args[1], cellar)
