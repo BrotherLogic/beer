@@ -353,6 +353,7 @@ func runSearch(command string, flags *flag.FlagSet, search string) {
 func runVersion(command string, cellar *BeerCellar) {
 	if command == "version" {
 		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
+		fmt.Printf("Loaded From: %v\n", cellar.dir)
 	}
 }
 
