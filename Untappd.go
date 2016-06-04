@@ -1,6 +1,5 @@
 package main
 
-
 import "bufio"
 import "encoding/json"
 import "errors"
@@ -20,9 +19,9 @@ var beerMap map[int]string
 
 // Match a match when doing a search
 type Match struct {
-     id int
-     name string
-     }
+	id   int
+	name string
+}
 
 type unmarshaller interface {
 	Unmarshal([]byte, *map[string]interface{}) error
@@ -55,14 +54,14 @@ func (fetcher mainFetcher) Fetch(url string) (*http.Response, error) {
 
 // Search finds beers in the cache that match blah
 func Search(namePart string) []Match {
-     ret := make([]Match, 0, len(beerMap))
-     for k,v := range beerMap {
-     	 if strings.Contains(v, namePart) {
-	    ret = append(ret, Match {id: k, name: v})
-	 }
-     }
+	ret := make([]Match, 0, len(beerMap))
+	for k, v := range beerMap {
+		if strings.Contains(v, namePart) {
+			ret = append(ret, Match{id: k, name: v})
+		}
+	}
 
-     return ret
+	return ret
 }
 
 func cacheBeer(id int, name string) {
@@ -74,13 +73,14 @@ func init() {
 }
 
 //Prep prepares the cache for use
-func Prep(){
-     beerMap = make(map[int]string)
+func Prep() {
+	beerMap = make(map[int]string)
 }
 
 // LoadCache - loads the cache from a given file
 func LoadCache(folder string) {
 	fileName := folder + "/untappd.metadata"
+
 	file, err := os.Open(fileName)
 
 	if err != nil {
@@ -180,7 +180,7 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 }
 
 func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error) {
-     log.Printf("RUNNING\n")
+	log.Printf("RUNNING\n")
 
 	var mapper map[string]interface{}
 	var values []Beer
@@ -189,11 +189,11 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error)
 		log.Printf("ERROR: %q\n", err)
 		return values, err
 	}
-	
+
 	meta := mapper["meta"].(map[string]interface{})
 	metaCode := int(meta["code"].(float64))
 	if metaCode != 200 {
-	   return values, errors.New("Couldn't retrieve drinks")
+		return values, errors.New("Couldn't retrieve drinks")
 	}
 
 	response := mapper["response"].(map[string]interface{})
@@ -215,22 +215,21 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error)
 
 // GetRecentDrinks Gets the most recent drinks from untappd
 func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, date string) []int {
-     var unmarshaller unmarshaller = mainUnmarshaller{}
+	var unmarshaller unmarshaller = mainUnmarshaller{}
 
-     var ret []int
+	var ret []int
 
-     text := getVenuePage(fetcher, converter, 2194560)
-     drinks, _ := convertPageToDrinks(text, unmarshaller)
+	text := getVenuePage(fetcher, converter, 2194560)
+	drinks, _ := convertPageToDrinks(text, unmarshaller)
 
-     for _, k := range drinks {
-     	 if IsAfter(date, k.drinkDate) {
-	    ret = append(ret, k.id)
-	 }
-     }
+	for _, k := range drinks {
+		if IsAfter(date, k.drinkDate) {
+			ret = append(ret, k.id)
+		}
+	}
 
-     return ret
+	return ret
 }
-
 
 // GetBeerName Determines the name of the beer from the id
 func GetBeerName(id int) string {
