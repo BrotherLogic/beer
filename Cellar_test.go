@@ -16,6 +16,33 @@ func (lineCounter LineCounterPrinter) GetCount() int {
 	return lineCounter.lcount
 }
 
+func TestCellarFree(t *testing.T) {
+	mine1 := NewCellar("freetest1")
+	mine2 := NewCellar("freetest2")
+	mine3 := NewCellar("freetest3")
+
+	beer1, _ := NewBeer("1234~01/01/16~bomber")
+	beer2, _ := NewBeer("1234~01/02/16~bomber")
+	beer3, _ := NewBeer("1235~01/03/16~small")
+
+	mine1.AddBeer(beer1)
+	mine1.AddBeer(beer2)
+	mine2.AddBeer(beer3)
+
+	large1, small1 := mine1.GetFreeSlots()
+	if large1 != 20-2 || small1 != 0 {
+		t.Errorf("Problem computing free slots of bomber cellar: %v, %v, %v", large1, small1, mine1)
+	}
+	large2, small2 := mine2.GetFreeSlots()
+	if large2 != 0 || small2 != 30-1 {
+		t.Errorf("Problem computing free slots of bomber cellar: %v, %v, %v", large2, small2, mine2)
+	}
+	large3, small3 := mine3.GetFreeSlots()
+	if large3 != 20 || small3 != 30 {
+		t.Errorf("Problem computing free slots of bomber cellar: %v, %v, %v", large3, small3, mine3)
+	}
+}
+
 func TestCellarDiff(t *testing.T) {
 	mine1 := NewCellar("difftest1")
 	mine2 := NewCellar("difftest2")

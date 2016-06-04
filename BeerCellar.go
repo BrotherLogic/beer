@@ -22,6 +22,17 @@ type BeerCellar struct {
 	bcellar       []Cellar
 }
 
+// GetFreeSlots Computes the number of free slots for each beer type
+func (cellar *BeerCellar) GetFreeSlots() (int, int) {
+	sumLarge, sumSmall := 0, 0
+	for _, cell := range cellar.bcellar {
+		large, small := cell.GetFreeSlots()
+		sumSmall += small
+		sumLarge += large
+	}
+	return sumLarge, sumSmall
+}
+
 // Sync syncs with untappd
 func (cellar *BeerCellar) Sync(fetcher httpResponseFetcher, converter responseConverter) {
 	drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
@@ -469,7 +480,7 @@ func main() {
 	removeFlags.IntVar(&removeID, "id", 0, "The ID of the beer to be removed")
 
 	cellarName := "prod"
-	dirName := "~/.beer/"
+	dirName := "/Users/simon/.beer/"
 
 	addBeerFlags.Parse(os.Args[2:])
 	listBeerFlags.Parse(os.Args[2:])
@@ -489,4 +500,9 @@ func main() {
 
 	cellar.Save()
 	SaveCache("prod_cache")
+
+	//Print the free slots
+	largeFree, smallFree := cellar.GetFreeSlots()
+	fmt.Printf("\nThere are %v free bomber slots\n", largeFree)
+	fmt.Printf("There are %v free small slots\n", smallFree)
 }
