@@ -22,6 +22,18 @@ func TestSaveDirectory(t *testing.T) {
 	}
 }
 
+func TestUpdateCellar(t *testing.T) {
+	mine := NewBeerCellar("testing_update", "")
+	ogVersion := mine.version
+	mine.version = "blah"
+	mine.Save()
+
+	mine2, _ := LoadOrNewBeerCellar("testing_update", "")
+	if mine2.version != ogVersion {
+		t.Errorf("Has not been updgraded %v %v", ogVersion, mine2.version)
+	}
+}
+
 func TestRunDiff(t *testing.T) {
 	mine := NewBeerCellar("testingdiff", "")
 	mine.Save()

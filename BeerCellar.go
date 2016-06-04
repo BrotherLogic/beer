@@ -224,6 +224,11 @@ func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 		}
 	}
 
+	//Upgrade the cellar here
+	if bc.version != "0.3" {
+		bc.version = "0.3"
+	}
+
 	return &bc, nil
 }
 
