@@ -32,6 +32,19 @@ func NewCellar(cname string) Cellar {
 	return Cellar{name: cname, contents: make([]Beer, 0, 30)}
 }
 
+// GetFreeSlots Computes the number of free slots for each beer type
+func (cellar *Cellar) GetFreeSlots() (int, int) {
+	if len(cellar.contents) == 0 {
+		return 20, 30
+	}
+
+	if cellar.contents[0].size == "bomber" {
+		return 20 - len(cellar.contents), 0
+	}
+
+	return 0, 30 - len(cellar.contents)
+}
+
 // Diff performs a diff between two cellars
 func (cellar *Cellar) Diff(cellar2 Cellar) []string {
 	var diffs []string

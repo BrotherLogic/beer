@@ -44,6 +44,19 @@ func TestCountBeers(t *testing.T) {
 	}
 }
 
+func TestCountFreeSlots(t *testing.T) {
+	mine := NewBeerCellar("testfreeslots", "")
+	mine.AddBeerByDays("1234", "01/01/06", "bomber", "14", "5")
+
+	largeFree, smallFree := mine.GetFreeSlots()
+	if smallFree != 7*30 {
+		t.Errorf("Wrong count of small free: %v (expeceted %v)", smallFree, 7*30)
+	}
+	if largeFree != 7*20+20-5 {
+		t.Errorf("Wrong count of large free: %v (expeceted %v)", largeFree, 7*20+20-5)
+	}
+}
+
 func TestAddByDate(t *testing.T) {
 	mine := NewBeerCellar("testaddbydays", "")
 	mine.AddBeerByDays("1234", "01/01/16", "bomber", "14", "5")
