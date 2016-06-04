@@ -172,7 +172,11 @@ func (cellar BeerCellar) printDiff() {
 	//Diff each cellar
 	if err == nil {
 		for i := 0; i < 8; i++ {
-			diffs := cellar.bcellar[0].Diff(othercellar.bcellar[0])
+			diffs := cellar.bcellar[i].Diff(othercellar.bcellar[i])
+
+			if len(diffs) > 0 {
+				fmt.Printf("Found Diff in Cellar %v\n", i+1)
+			}
 
 			for j := 0; j < len(diffs); j++ {
 				fmt.Printf(diffs[j])
@@ -185,7 +189,7 @@ func (cellar BeerCellar) printDiff() {
 func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 
 	bc := BeerCellar{
-		version: "0.2",
+		version: "0.3",
 		name:    name,
 		dir:     dirname,
 		bcellar: make([]Cellar, 0),
@@ -226,7 +230,7 @@ func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
 // NewBeerCellar creates new beer cellar
 func NewBeerCellar(name string, dirname string) *BeerCellar {
 	bc := BeerCellar{
-		version:  "0.1",
+		version:  "0.3",
 		name:     name,
 		dir:      dirname,
 		syncTime: time.Now().Format("02/01/06"),

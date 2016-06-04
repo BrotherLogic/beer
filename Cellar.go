@@ -54,7 +54,6 @@ func (cellar *Cellar) Diff(cellar2 Cellar) []string {
 
 	for pointer1 < cellar.Size() && pointer2 < cellar2.Size() {
 		if cellar.contents[pointer1] == cellar2.contents[pointer2] {
-			diffs = append(diffs, cellar.contents[pointer1].Name())
 			pointer1++
 			pointer2++
 		} else {

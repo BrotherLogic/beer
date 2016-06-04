@@ -43,6 +43,26 @@ func TestCellarFree(t *testing.T) {
 	}
 }
 
+func TestCellarDiffSimple(t *testing.T) {
+	mine1 := NewCellar("difftest1")
+	mine2 := NewCellar("difftest2")
+
+	cacheBeer(1234, "Tester1")
+	cacheBeer(1235, "Tester2")
+
+	beer1, _ := NewBeer("1234~01/01/16~small")
+	beer2, _ := NewBeer("1234~01/01/16~small")
+
+	mine1.AddBeer(beer1)
+	mine2.AddBeer(beer2)
+
+	diffs := mine1.Diff(mine2)
+
+	if len(diffs) != 0 {
+		t.Errorf("Diff error : %v vs %v gives %v", mine1, mine2, diffs)
+	}
+}
+
 func TestCellarDiff(t *testing.T) {
 	mine1 := NewCellar("difftest1")
 	mine2 := NewCellar("difftest2")
@@ -61,36 +81,28 @@ func TestCellarDiff(t *testing.T) {
 
 	diffs := mine1.Diff(mine2)
 
-	if len(diffs) != 3 {
+	if len(diffs) != 2 {
 		t.Errorf("Not enough lines in the diff")
 	} else {
-		if diffs[0] != beer1.Name() {
-			t.Errorf("First line of diff is wrong %v", diffs[0])
-		}
-
-		if diffs[1] != "+ "+beer2.Name() {
+		if diffs[0] != "+ "+beer2.Name() {
 			t.Errorf("Second line of diff is wrong (should be +) %v", diffs)
 		}
 
-		if diffs[2] != "- "+beer3.Name() {
+		if diffs[1] != "- "+beer3.Name() {
 			t.Errorf("Third line of diff is wrong (should be -) %v", diffs)
 		}
 	}
 
 	rdiffs := mine2.Diff(mine1)
 
-	if len(rdiffs) != 3 {
+	if len(rdiffs) != 2 {
 		t.Errorf("Not enough lines in the diff")
 	} else {
-		if rdiffs[0] != beer1.Name() {
-			t.Errorf("First line of diff is wrong %v", rdiffs[0])
-		}
-
-		if rdiffs[1] != "- "+beer2.Name() {
+		if rdiffs[0] != "- "+beer2.Name() {
 			t.Errorf("Second line of diff is wrong (should be +) %v", rdiffs)
 		}
 
-		if rdiffs[2] != "+ "+beer3.Name() {
+		if rdiffs[1] != "+ "+beer3.Name() {
 			t.Errorf("Third line of diff is wrong (should be -) %v", rdiffs)
 		}
 	}
