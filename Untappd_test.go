@@ -80,7 +80,7 @@ func TestGetVenuePage(t *testing.T) {
 	var fetcher = mainFetcher{}
 	var converter = mainConverter{}
 	drinks := getVenuePage(fetcher, converter, 2194560)
-	if !strings.Contains(drinks, "Bookers") {
+	if !strings.Contains(drinks, "Three Burners") {
 		t.Errorf("Venue Page is not being retrieved correctly\n%v\n", drinks)
 	}
 }
