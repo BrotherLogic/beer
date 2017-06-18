@@ -333,10 +333,6 @@ func TestMin(t *testing.T) {
 	}
 }
 
-func TestMain(t *testing.T) {
-	main()
-}
-
 func TestGetNumberOfCellars(t *testing.T) {
 	bc := NewBeerCellar("test", "")
 	if bc.GetNumberOfCellars() != 8 {
