@@ -88,7 +88,7 @@ func TestGetVenuePage(t *testing.T) {
 func TestGetRecentDrinks(t *testing.T) {
 	var fetcher = blankVenuePageFetcher{}
 	var converter = venuePageConverter{}
-	drinks := GetRecentDrinks(fetcher, converter, "01/01/13")
+	drinks := GetRecentDrinks(fetcher, converter, 1234)
 
 	if len(drinks) != 15 {
 		t.Errorf("Not enough drinks processed %v\n", len(drinks))

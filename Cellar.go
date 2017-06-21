@@ -1,11 +1,14 @@
 package main
 
-import "bufio"
-import "fmt"
-import "log"
+import (
+	"fmt"
+	"log"
+	"sort"
+
+	pb "github.com/brotherlogic/beer/proto"
+)
+
 import "math"
-import "os"
-import "sort"
 
 // Printer prints to various places
 type Printer interface {
@@ -21,82 +24,41 @@ func (stdprinter *StdOutPrint) Println(output string) {
 	fmt.Printf("%v\n", output)
 }
 
-// Cellar a single cellar box
-type Cellar struct {
-	name     string
-	contents []Beer
-}
-
 // NewCellar builds a new cellar
-func NewCellar(cname string) Cellar {
-	return Cellar{name: cname, contents: make([]Beer, 0, 30)}
+func NewCellar(cname string) pb.Cellar {
+	return pb.Cellar{Name: cname}
 }
 
 // GetFreeSlots Computes the number of free slots for each beer type
-func (cellar *Cellar) GetFreeSlots() (int, int) {
-	if len(cellar.contents) == 0 {
+func GetFreeSlots(cellar *pb.Cellar) (int, int) {
+	if len(cellar.Beers) == 0 {
 		return 20, 30
 	}
 
-	if cellar.contents[0].size == "bomber" {
-		return 20 - len(cellar.contents), 0
+	if cellar.Beers[0].Size == "bomber" {
+		return 20 - len(cellar.Beers), 0
 	}
 
-	return 0, 30 - len(cellar.contents)
-}
-
-// Diff performs a diff between two cellars
-func (cellar *Cellar) Diff(cellar2 Cellar) []string {
-	var diffs []string
-
-	pointer1 := 0
-	pointer2 := 0
-
-	for pointer1 < cellar.Size() && pointer2 < cellar2.Size() {
-		if cellar.contents[pointer1] == cellar2.contents[pointer2] {
-			pointer1++
-			pointer2++
-		} else {
-			if cellar.contents[pointer1].IsAfter(cellar2.contents[pointer2]) {
-				diffs = append(diffs, "+ "+cellar.contents[pointer1].Name())
-				pointer1++
-			} else {
-				diffs = append(diffs, "- "+cellar2.contents[pointer2].Name())
-				pointer2++
-			}
-		}
-	}
-
-	for pointer1 < cellar.Size() {
-		diffs = append(diffs, "+ "+cellar.contents[pointer1].Name())
-		pointer1++
-	}
-
-	for pointer2 < cellar2.Size() {
-		diffs = append(diffs, "- "+cellar2.contents[pointer2].Name())
-		pointer2++
-	}
-
-	return diffs
+	return 0, 30 - len(cellar.Beers)
 }
 
 // Remove removes a beer from the cellar
-func (cellar *Cellar) Remove(id int) {
+func Remove(cellar *pb.Cellar, id int64) {
 	removeIndex := -1
-	for i, v := range cellar.contents {
-		if v.id == id {
+	for i, v := range cellar.Beers {
+		if v.Id == id {
 			removeIndex = i
 			break
 		}
 	}
 
-	cellar.contents = append(cellar.contents[:removeIndex], cellar.contents[removeIndex+1:]...)
+	cellar.Beers = append(cellar.Beers[:removeIndex], cellar.Beers[removeIndex+1:]...)
 }
 
 // GetRemoveCost computes the cost of removing a beer from the cellar
-func (cellar *Cellar) GetRemoveCost(id int) int {
-	for i, beer := range cellar.contents {
-		if beer.id == id {
+func GetRemoveCost(cellar *pb.Cellar, id int64) int {
+	for i, beer := range cellar.Beers {
+		if beer.Id == id {
 			return i
 		}
 	}
@@ -105,139 +67,91 @@ func (cellar *Cellar) GetRemoveCost(id int) int {
 }
 
 // CountBeersInCellar counts the number of beers in the cellar
-func (cellar *Cellar) CountBeersInCellar(id int) int {
+func CountBeersInCellar(cellar *pb.Cellar, id int64) int {
 	sum := 0
-	for _, v := range cellar.contents {
-		if v.id == id {
+	for _, v := range cellar.Beers {
+		if v.Id == id {
 			sum++
 		}
 	}
 	return sum
 }
 
-// Save saves the cellar file
-func (cellar *Cellar) Save() {
-	f, err := os.Create(cellar.name)
-
-	if err != nil {
-		log.Printf("Error opening file %v\n", err)
-	}
-
-	defer f.Close()
-
-	for _, v := range cellar.contents {
-		fmt.Fprintf(f, "%v~%v~%v\n", v.id, v.drinkDate, v.size)
-	}
-}
-
-// PrintCellar prints the contents of the cellar using the Printer
-func (cellar *Cellar) PrintCellar(out Printer) {
-	out.Println(cellar.name)
-
-	for _, v := range cellar.contents {
-		out.Println(v.Name())
-	}
-}
-
 // GetNext Removes the next beer from the cellar
-func (cellar *Cellar) GetNext() Beer {
-	beer := cellar.contents[0]
-	cellar.contents = cellar.contents[1:]
+func GetNext(cellar *pb.Cellar) *pb.Beer {
+	beer := cellar.Beers[0]
+	cellar.Beers = cellar.Beers[1:]
 	return beer
 }
 
-func (cellar *Cellar) getInsertPoint(beer Beer) int {
+func getInsertPoint(cellar *pb.Cellar, beer *pb.Beer) int {
 	insertPoint := -1
-	for i := 0; i < len(cellar.contents); i++ {
-		if beer.IsAfter(cellar.contents[i]) {
+	for i := 0; i < len(cellar.Beers); i++ {
+		if beer.DrinkDate < cellar.Beers[i].DrinkDate {
 			insertPoint = i
 			break
 		}
 	}
 
 	if insertPoint == -1 {
-		insertPoint = len(cellar.contents)
+		insertPoint = len(cellar.Beers)
 	}
 	return insertPoint
 }
 
 // ComputeInsertCost Determines the cost of inserting beer into the cellar
-func (cellar *Cellar) ComputeInsertCost(beer Beer) int {
+func ComputeInsertCost(cellar *pb.Cellar, beer *pb.Beer) int {
 	//Insert cost of an empty cellar should be high
-	if len(cellar.contents) == 0 {
+	if len(cellar.Beers) == 0 {
 		return int(math.MaxInt16)
 	}
 
 	//Don't mix sizes
-	if cellar.contents[0].size != beer.size {
+	if cellar.Beers[0].Size != beer.Size {
 		return -1
 	}
 
 	// Ensure that cellars don't overflow
-	if cellar.contents[0].size == "small" && len(cellar.contents) >= 30 {
+	if cellar.Beers[0].Size == "small" && len(cellar.Beers) >= 30 {
 		return -1
-	} else if cellar.contents[0].size == "bomber" && len(cellar.contents) >= 20 {
+	} else if cellar.Beers[0].Size == "bomber" && len(cellar.Beers) >= 20 {
 		return -1
 	}
 
-	insertPoint := cellar.getInsertPoint(beer)
+	insertPoint := getInsertPoint(cellar, beer)
 
 	return insertPoint
 }
 
-// AddBeer adds a beer to the cellar
-func (cellar *Cellar) AddBeer(beer Beer) {
-	log.Printf("Adding %v\n", beer)
+// AddBeerToCellar adds a beer to the cellar
+func AddBeerToCellar(cellar *pb.Cellar, beer *pb.Beer) {
+	log.Printf("Adding %v to %v", beer, len(cellar.Beers))
 
-	insertPoint := cellar.getInsertPoint(beer)
+	insertPoint := getInsertPoint(cellar, beer)
 
-	cellar.contents = cellar.contents[0 : len(cellar.contents)+1]
-	copy(cellar.contents[insertPoint+1:], cellar.contents[insertPoint:])
-	cellar.contents[insertPoint] = beer
-}
-
-// Size Determines the size of the cellar
-func (cellar Cellar) Size() int {
-	return len(cellar.contents)
+	log.Printf("Found insert point: %v", insertPoint)
+	log.Printf("WAS %v", cellar.Beers)
+	nb := make([]*pb.Beer, 0)
+	nb = append(nb, cellar.Beers[0:insertPoint]...)
+	log.Printf("NB %v", nb)
+	nb = append(nb, beer)
+	log.Printf("MB %v", nb)
+	nb = append(nb, cellar.Beers[insertPoint:]...)
+	log.Printf("OB %v", cellar.Beers)
+	cellar.Beers = nb
+	log.Printf("NOW %v", cellar.Beers)
 }
 
 // MergeCellars combines N cellars into a list of beers
-func MergeCellars(bsize string, cellars ...Cellar) []Beer {
-	var retArr []Beer
+func MergeCellars(bsize string, cellars ...*pb.Cellar) []*pb.Beer {
+	var retArr []*pb.Beer
 	for _, cellar := range cellars {
-		if cellar.Size() > 0 && cellar.contents[0].size == bsize {
-			retArr = append(retArr, cellar.contents...)
+		if len(cellar.Beers) > 0 && cellar.Beers[0].Size == bsize {
+			retArr = append(retArr, cellar.Beers...)
 		}
 	}
 
 	sort.Sort(ByDate(retArr))
 
 	return retArr
-}
-
-// BuildCellar Constructs the cellar for the given fileName
-func BuildCellar(fileName string) *Cellar {
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Printf("Error opening %q\n", fileName)
-		return nil
-	}
-
-	defer file.Close()
-
-	cellar := NewCellar(fileName)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		beer, err := NewBeer(line)
-
-		if err == nil {
-			cellar.AddBeer(beer)
-		} else {
-			log.Printf("Unable to parse beer: %v -> %v\n", line, err)
-		}
-	}
-
-	return &cellar
 }
