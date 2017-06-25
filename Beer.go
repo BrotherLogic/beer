@@ -1,38 +1,54 @@
 package main
 
-import "errors"
-import "strconv"
-import "strings"
-import "time"
+import (
+	"flag"
+	"fmt"
+	"log"
+	"os"
+	"strconv"
 
-import pb "github.com/brotherlogic/beer/proto"
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
 
-// ByDate used to sort beer
-type ByDate []*pb.Beer
+	pb "github.com/brotherlogic/beerserver/proto"
+	pbdi "github.com/brotherlogic/discovery/proto"
+)
 
-func (a ByDate) Len() int           { return len(a) }
-func (a ByDate) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a ByDate) Less(i, j int) bool { return a[i].GetDrinkDate() < a[j].GetDrinkDate() }
+func getIP(servername string) (string, int) {
+	conn, _ := grpc.Dial("192.168.86.64:50055", grpc.WithInsecure())
+	defer conn.Close()
 
-// NewBeer Builds a new beer
-func NewBeer(line string) (pb.Beer, error) {
-	elems := strings.Split(line, "~")
-
-	if len(elems) != 3 {
-		return pb.Beer{}, errors.New("Line is misspecified: " + line)
+	registry := pbdi.NewDiscoveryServiceClient(conn)
+	entry := pbdi.RegistryEntry{Name: servername}
+	r, err := registry.Discover(context.Background(), &entry)
+	if err != nil {
+		return "", -1
 	}
+	return r.Ip, int(r.Port)
+}
 
-	bid, _ := strconv.Atoi(elems[0])
-	size := elems[2]
+func main() {
 
-	// Ensure that the date parses correctly
-	t, err := time.Parse("02/01/06", elems[1])
+	getFlags := flag.NewFlagSet("GetBeer", flag.ExitOnError)
+	var size = getFlags.String("string", "bomber", "Size of the beer")
 
-	// Ensure that the beer size is set
-	if err == nil && size != "bomber" && size != "small" {
-		err = errors.New(size + " is not a valid beer size")
+	if len(os.Args) <= 1 {
+		fmt.Printf("Commands: get\n")
+	} else {
+		switch os.Args[1] {
+		case "get":
+			if err := getFlags.Parse(os.Args[2:]); err == nil {
+				ip, port := getIP("beerserver")
+				conn, _ := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
+				defer conn.Close()
+
+				client := pb.NewBeerCellarServiceClient(conn)
+				beer, err := client.GetBeer(context.Background(), &pb.Beer{Size: *size})
+				if err != nil {
+					log.Fatalf("Error getting beer: %v", err)
+				}
+				fmt.Printf("%v\n", beer)
+			}
+		}
 	}
-
-	beer := pb.Beer{Id: int64(bid), DrinkDate: t.Unix(), Size: size}
-	return beer, err
 }
