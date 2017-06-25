@@ -75,7 +75,7 @@ func Size(cellar *pb.BeerCellar) int {
 }
 
 // AddBuilt Adds a beer to the cellar
-func AddBuilt(cellar *pb.BeerCellar, beer *pb.Beer) {
+func AddBuilt(cellar *pb.BeerCellar, beer *pb.Beer) *pb.Cellar {
 	bestCellar := -1
 	bestScore := -1
 
@@ -93,6 +93,7 @@ func AddBuilt(cellar *pb.BeerCellar, beer *pb.Beer) {
 	log.Printf("Adding to %v given %v", bestCellar, cellar.Cellars)
 	AddBeerToCellar(cellar.Cellars[bestCellar], beer)
 	log.Printf("DONE Adding to %v given %v", bestCellar, cellar.Cellars)
+	return cellar.Cellars[bestCellar]
 }
 
 // GetEmptyCellarCount Gets the number of empty cellars

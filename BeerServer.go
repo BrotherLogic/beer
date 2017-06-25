@@ -1,6 +1,8 @@
 package main
 
 import (
+	"context"
+
 	"github.com/brotherlogic/goserver"
 	"github.com/brotherlogic/keystore/client"
 	"google.golang.org/grpc"
@@ -27,6 +29,12 @@ func (s *Server) ReportHealth() bool {
 // Mote promotes this server
 func (s *Server) Mote(master bool) error {
 	return nil
+}
+
+//AddBeer adds a beer to the cellar
+func (s *Server) AddBeer(ctx context.Context, beer *pb.Beer) (*pb.Cellar, error) {
+	cel := AddBuilt(s.cellar, beer)
+	return cel, nil
 }
 
 //Init builds a server
