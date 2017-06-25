@@ -22,3 +22,7 @@ message BeerCellar {
   	string untappdSecret = 4;
     repeated Cellar cellars = 5;
 }
+
+service BeerCellar {
+  rpc AddBeer(Beer) returns (Cellar) {};
+}
