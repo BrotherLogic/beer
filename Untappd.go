@@ -12,6 +12,8 @@ import "strconv"
 import "strings"
 import "time"
 
+import pb "github.com/brotherlogic/beer/proto"
+
 var untappdKey string
 var untappdSecret string
 
@@ -69,11 +71,6 @@ func cacheBeer(id int, name string) {
 }
 
 func init() {
-	beerMap = make(map[int]string)
-}
-
-//Prep prepares the cache for use
-func Prep() {
 	beerMap = make(map[int]string)
 }
 
@@ -179,11 +176,11 @@ func convertPageToName(page string, unmarshaller unmarshaller) string {
 	return brewery["brewery_name"].(string) + " - " + beer["beer_name"].(string)
 }
 
-func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error) {
+func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]pb.Beer, error) {
 	log.Printf("RUNNING\n")
 
 	var mapper map[string]interface{}
-	var values []Beer
+	var values []pb.Beer
 	err := unmarshaller.Unmarshal([]byte(page), &mapper)
 	if err != nil {
 		log.Printf("ERROR: %q\n", err)
@@ -203,10 +200,10 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error)
 
 	for _, v := range items {
 		beer := v.(map[string]interface{})["beer"].(map[string]interface{})
-		beerID := int(beer["bid"].(float64))
+		beerID := int64(beer["bid"].(float64))
 		date := string(v.(map[string]interface{})["created_at"].(string))
 		cdate, _ := time.Parse(time.RFC1123Z, date)
-		nbeer := Beer{id: beerID, drinkDate: cdate.Format("02/01/06")}
+		nbeer := pb.Beer{Id: beerID, DrinkDate: cdate.Unix()}
 		values = append(values, nbeer)
 	}
 
@@ -214,17 +211,17 @@ func convertPageToDrinks(page string, unmarshaller unmarshaller) ([]Beer, error)
 }
 
 // GetRecentDrinks Gets the most recent drinks from untappd
-func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, date string) []int {
+func GetRecentDrinks(fetcher httpResponseFetcher, converter responseConverter, date int64) []int64 {
 	var unmarshaller unmarshaller = mainUnmarshaller{}
 
-	var ret []int
+	var ret []int64
 
 	text := getVenuePage(fetcher, converter, 2194560)
 	drinks, _ := convertPageToDrinks(text, unmarshaller)
 
 	for _, k := range drinks {
-		if IsAfter(date, k.drinkDate) {
-			ret = append(ret, k.id)
+		if date < k.DrinkDate {
+			ret = append(ret, k.Id)
 		}
 	}
 

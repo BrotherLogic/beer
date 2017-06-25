@@ -1,32 +1,18 @@
 package main
 
-import "bufio"
-import "errors"
-import "flag"
-import "fmt"
-
 import "log"
-import "os"
+
 import "strconv"
-import "strings"
+
 import "time"
 
-// BeerCellar the overall beer cellar
-type BeerCellar struct {
-	version       string
-	name          string
-	dir           string
-	syncTime      string
-	untappdKey    string
-	untappdSecret string
-	bcellar       []Cellar
-}
+import pb "github.com/brotherlogic/beer/proto"
 
-// GetFreeSlots Computes the number of free slots for each beer type
-func (cellar *BeerCellar) GetFreeSlots() (int, int) {
+// GetTotalFreeSlots Computes the number of free slots for each beer type
+func GetTotalFreeSlots(cellar *pb.BeerCellar) (int, int) {
 	sumLarge, sumSmall := 0, 0
-	for _, cell := range cellar.bcellar {
-		large, small := cell.GetFreeSlots()
+	for _, cell := range cellar.Cellars {
+		large, small := GetFreeSlots(cell)
 		sumSmall += small
 		sumLarge += large
 	}
@@ -34,23 +20,23 @@ func (cellar *BeerCellar) GetFreeSlots() (int, int) {
 }
 
 // Sync syncs with untappd
-func (cellar *BeerCellar) Sync(fetcher httpResponseFetcher, converter responseConverter) {
-	drunk := GetRecentDrinks(fetcher, converter, cellar.syncTime)
+func Sync(cellar *pb.BeerCellar, fetcher httpResponseFetcher, converter responseConverter) {
+	drunk := GetRecentDrinks(fetcher, converter, cellar.SyncTime)
 	log.Printf("Found these: %v\n", drunk)
 	for _, val := range drunk {
 		log.Printf("Removing %v from cellar\n", val)
-		cellar.RemoveBeer(val)
+		RemoveBeer(cellar, val)
 	}
 
-	cellar.syncTime = time.Now().Format("02/01/06")
+	cellar.SyncTime = time.Now().Unix()
 }
 
 // RemoveBeer removes a beer from the cellar
-func (cellar *BeerCellar) RemoveBeer(id int) {
+func RemoveBeer(cellar *pb.BeerCellar, id int64) {
 	cellarIndex := -1
 	cellarCost := -1
-	for i, c := range cellar.bcellar {
-		cost := c.GetRemoveCost(id)
+	for i, c := range cellar.GetCellars() {
+		cost := GetRemoveCost(c, id)
 		if cost >= 0 {
 			if cellarIndex < 0 || cost < cellarCost {
 				cellarIndex = i
@@ -61,79 +47,40 @@ func (cellar *BeerCellar) RemoveBeer(id int) {
 
 	if cellarIndex >= 0 {
 		log.Printf("Removing %v from %v\n", id, cellarIndex)
-		cellar.bcellar[cellarIndex].Remove(id)
+		Remove(cellar.Cellars[cellarIndex], id)
 	}
 }
 
 // CountBeers returns the number of beers of a given id in the cellar
-func (cellar *BeerCellar) CountBeers(id int) int {
+func CountBeers(cellar *pb.BeerCellar, id int64) int {
 	sum := 0
-	for _, v := range cellar.bcellar {
-		sum += v.CountBeersInCellar(id)
+	for _, v := range cellar.GetCellars() {
+		sum += CountBeersInCellar(v, id)
 	}
 	return sum
 }
 
-// SetUntappd sets the untappd key, secret pair
-func (cellar *BeerCellar) SetUntappd(key string, secret string) {
-	cellar.untappdKey = key
-	cellar.untappdSecret = secret
-}
-
-// GetUntappd Gets the untappd key,secret pair
-func (cellar BeerCellar) GetUntappd() (string, string) {
-	return cellar.untappdKey, cellar.untappdSecret
-}
-
-// PrintCellar prints out the cellar
-func (cellar BeerCellar) PrintCellar(printer Printer) {
-	for i, v := range cellar.bcellar {
-		if i > 0 {
-			printer.Println("--------------")
-		}
-		v.PrintCellar(printer)
-	}
-}
-
 // GetNumberOfCellars gets the number of cellar boxes in the cellar
-func (cellar BeerCellar) GetNumberOfCellars() int {
-	return len(cellar.bcellar)
-}
-
-// Save stores a cellar to disk
-func (cellar BeerCellar) Save() {
-	for _, v := range cellar.bcellar {
-		v.Save()
-	}
-
-	//Also save the metadata
-	fileName := cleanDirName(cellar.dir) + cellar.name + ".metadata"
-	f, err := os.Create(fileName)
-	if err != nil {
-		log.Printf("Error saving metadata file: %v\n", fileName)
-		return
-	}
-
-	defer f.Close()
-	fmt.Fprintf(f, "%v~%v~%v~%v~%v\n", cellar.version, cellar.name, cellar.syncTime, cellar.untappdKey, cellar.untappdSecret)
+func GetNumberOfCellars(cellar *pb.BeerCellar) int {
+	return len(cellar.Cellars)
 }
 
 // Size gets the size of the cellar
-func (cellar BeerCellar) Size() int {
+func Size(cellar *pb.BeerCellar) int {
 	size := 0
-	for _, v := range cellar.bcellar {
-		size += v.Size()
+	for _, v := range cellar.GetCellars() {
+		size += len(v.GetBeers())
 	}
 	return size
 }
 
-// AddBeerToCellar Adds a beer to the cellar
-func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
+// AddBuilt Adds a beer to the cellar
+func AddBuilt(cellar *pb.BeerCellar, beer *pb.Beer) {
 	bestCellar := -1
 	bestScore := -1
 
-	for i, v := range cellar.bcellar {
-		insertCount := v.ComputeInsertCost(beer)
+	for i, v := range cellar.GetCellars() {
+		insertCount := ComputeInsertCost(v, beer)
 
 		log.Printf("Adding beer to cellar %v: %v\n", i, insertCount)
 
@@ -143,157 +90,67 @@ func (cellar BeerCellar) AddBeerToCellar(beer Beer) Cellar {
 		}
 	}
 
-	cellar.bcellar[bestCellar].AddBeer(beer)
-	return cellar.bcellar[bestCellar]
+	log.Printf("Adding to %v given %v", bestCellar, cellar.Cellars)
+	AddBeerToCellar(cellar.Cellars[bestCellar], beer)
+	log.Printf("DONE Adding to %v given %v", bestCellar, cellar.Cellars)
 }
 
 // GetEmptyCellarCount Gets the number of empty cellars
-func (cellar BeerCellar) GetEmptyCellarCount() int {
+func GetEmptyCellarCount(cellar *pb.BeerCellar) int {
 	count := 0
-	for _, v := range cellar.bcellar {
-		if v.Size() == 0 {
+	for _, v := range cellar.Cellars {
+		if len(v.Beers) == 0 {
 			count++
 		}
 	}
 	return count
 }
 
-func cleanDirName(name string) string {
-	if len(name) > 0 && name[len(name)-1] != '/' {
-		return name + "/"
-	}
-	return name
-}
-
-func (cellar BeerCellar) printDiff() {
-	//Reload cellar from disk
-	othercellar, err := LoadBeerCellar(cellar.name, cellar.dir)
-
-	//Diff each cellar
-	if err == nil {
-		for i := 0; i < 8; i++ {
-			diffs := cellar.bcellar[i].Diff(othercellar.bcellar[i])
-
-			if len(diffs) > 0 {
-				fmt.Printf("Found Diff in Cellar %v\n", i+1)
-			}
-
-			for j := 0; j < len(diffs); j++ {
-				fmt.Printf(diffs[j])
-			}
-		}
-	}
-}
-
-// LoadBeerCellar loads a set of beer cellar files
-func LoadBeerCellar(name string, dirname string) (*BeerCellar, error) {
-
-	bc := BeerCellar{
-		version: "0.3",
-		name:    name,
-		dir:     dirname,
-		bcellar: make([]Cellar, 0),
-	}
-
-	for i := 1; i < 9; i++ {
-		tcellar := BuildCellar(cleanDirName(dirname) + name + strconv.Itoa(i) + ".cellar")
-		if tcellar != nil {
-			bc.bcellar = append(bc.bcellar, *tcellar)
-		}
-	}
-
-	// Load in the metadata
-	fileName := cleanDirName(dirname) + name + ".metadata"
-	file, err := os.Open(fileName)
-	if err != nil {
-		log.Printf("Error opening file: %v - %v\n", fileName, err)
-		return &bc, errors.New("Cannot open metadata file")
-	}
-
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		elems := strings.Split(line, "~")
-		if len(elems) == 5 {
-			bc.version = elems[0]
-			bc.name = elems[1]
-			bc.syncTime = elems[2]
-			bc.untappdKey = elems[3]
-			bc.untappdSecret = elems[4]
-		}
-	}
-
-	//Upgrade the cellar here
-	if bc.version != "0.3" {
-		bc.version = "0.3"
-	}
-
-	return &bc, nil
-}
-
 // NewBeerCellar creates new beer cellar
-func NewBeerCellar(name string, dirname string) *BeerCellar {
-	bc := BeerCellar{
-		version:  "0.3",
-		name:     name,
-		dir:      dirname,
-		syncTime: time.Now().Format("02/01/06"),
-		bcellar:  make([]Cellar, 0),
+func NewBeerCellar(name string, dirname string) *pb.BeerCellar {
+	bc := &pb.BeerCellar{
+		Name:     name,
+		SyncTime: time.Now().Unix(),
+		Cellars:  make([]*pb.Cellar, 8),
 	}
 
-	for i := 1; i < 9; i++ {
-		bc.bcellar = append(bc.bcellar, NewCellar(cleanDirName(dirname)+name+strconv.Itoa(i)+".cellar"))
+	for i := range bc.Cellars {
+		bc.Cellars[i] = &pb.Cellar{
+			Beers: make([]*pb.Beer, 0),
+		}
 	}
 
-	return &bc
-}
-
-// LoadOrNewBeerCellar loads or creates a new BeerCellar
-func LoadOrNewBeerCellar(name string, dirname string) (*BeerCellar, error) {
-	if _, err := os.Stat(cleanDirName(dirname) + name + ".metadata"); err == nil {
-		return LoadBeerCellar(name, dirname)
-	}
-
-	return NewBeerCellar(name, dirname), nil
-}
-
-// GetVersion gets the version of the cellar code
-func (cellar *BeerCellar) GetVersion() string {
-	return cellar.version
+	return bc
 }
 
 // AddBeerByDays adds beers by days to the cellar.
-func (cellar *BeerCellar) AddBeerByDays(id string, date string, size string, days string, count string) {
+func AddBeerByDays(cellar *pb.BeerCellar, id string, date string, size string, days string, count string) {
 	startDate, _ := time.Parse("02/01/06", date)
 	countVal, _ := strconv.Atoi(count)
 	daysVal, _ := strconv.Atoi(days)
 	for i := 0; i < countVal; i++ {
-		cellar.AddBeer(id, startDate.Format("02/01/06"), size)
+		AddBeer(cellar, id, startDate.Unix(), size)
 		startDate = startDate.AddDate(0, 0, daysVal)
 	}
 }
 
 // AddBeerByYears adds beers by years to the cellar.
-func (cellar *BeerCellar) AddBeerByYears(id string, date string, size string, years string, count string) {
+func AddBeerByYears(cellar *pb.BeerCellar, id string, date string, size string, years string, count string) {
 	startDate, _ := time.Parse("02/01/06", date)
 	countVal, _ := strconv.Atoi(count)
 	yearsVal, _ := strconv.Atoi(years)
 	for i := 0; i < countVal; i++ {
-		cellar.AddBeer(id, startDate.Format("02/01/06"), size)
+		AddBeer(cellar, id, startDate.Unix(), size)
 		startDate = startDate.AddDate(yearsVal, 0, 0)
 	}
 }
 
 // AddBeer adds the beer to the cellar
-func (cellar *BeerCellar) AddBeer(id string, date string, size string) *Cellar {
+func AddBeer(cellar *pb.BeerCellar, id string, date int64, size string) {
 	idNum, _ := strconv.Atoi(id)
 	if idNum >= 0 {
-		cellarBox := cellar.AddBeerToCellar(Beer{id: idNum, drinkDate: date, size: size})
-		return &cellarBox
+		AddBuilt(cellar, &pb.Beer{Id: int64(idNum), DrinkDate: date, Size: size})
 	}
-
-	return nil
 }
 
 // Min returns the min of the parameters
@@ -306,121 +163,19 @@ func Min(a int, b int) int {
 }
 
 // ListBeers lists the cellared beers of a given type
-func (cellar *BeerCellar) ListBeers(num int, btype string, date string) []Beer {
-	log.Printf("Cellar looks like %v\n", cellar.bcellar)
-	retList := MergeCellars(btype, cellar.bcellar...)
+func ListBeers(cellar *pb.BeerCellar, num int, btype string, date int64) []*pb.Beer {
+	log.Printf("Cellar looks like %v\n", cellar.Cellars)
+	retList := MergeCellars(btype, cellar.Cellars...)
 
 	pointer := -1
 	for i, v := range retList {
-		if i < num && IsAfter(v.drinkDate, date) {
+		if i < num && v.DrinkDate < date {
 			pointer = i
 		} else {
-			log.Printf("%v, %v and %v %v isAfter %v\n", i, num, v.drinkDate, date, IsAfter(v.drinkDate, date))
+			log.Printf("%v, %v and %v %v\n", i, num, v.DrinkDate, date)
 		}
 	}
 
+	log.Printf("RETURNING %v", retList)
 	return retList[:pointer+1]
-}
-
-// PrintBeers prints out the beers of a given type
-func (cellar *BeerCellar) PrintBeers(numBombers int, numSmall int) {
-	now := time.Now().Format("02/01/06")
-	bombers := cellar.ListBeers(numBombers, "bomber", now)
-	smalls := cellar.ListBeers(numSmall, "small", now)
-
-	fmt.Printf("Bombers\n")
-	fmt.Printf("-------\n")
-	for _, v := range bombers {
-		fmt.Printf("%v\n", GetBeerName(v.id))
-	}
-
-	fmt.Printf("Smalls\n")
-	fmt.Printf("-------\n")
-	for _, v := range smalls {
-		fmt.Printf("%v\n", GetBeerName(v.id))
-	}
-
-}
-
-func runSearch(command string, flags *flag.FlagSet, search string) {
-	if command == "search" {
-		if flags.Parsed() {
-			matches := Search(search)
-			for _, match := range matches {
-				fmt.Printf("%v: %v\n", match.name, match.id)
-			}
-		} else {
-			flags.PrintDefaults()
-		}
-	}
-}
-
-func runVersion(command string, cellar *BeerCellar) {
-	if command == "version" {
-		fmt.Printf("BeerCellar: %q\n", cellar.GetVersion())
-		fmt.Printf("Loaded From: %v\n", cellar.dir)
-		fmt.Printf("Code checkpoint 0.1\n")
-		fmt.Printf("Cache location %v", cellar.dir+"prod_cache")
-	}
-}
-
-func runAddBeer(command string, flags *flag.FlagSet, id string, date string, size string, days string, years string, count string, cellar *BeerCellar) {
-	if command == "add" {
-		if id != "" {
-			if date == "" {
-				date = time.Now().Format("02/01/06")
-			}
-
-			log.Printf("HERE %v and %v\n", days, years)
-
-			if days != "" {
-				cellar.AddBeerByDays(id, date, size, days, count)
-				cellar.PrintCellar(&StdOutPrint{})
-			} else if years != "" {
-				log.Printf("ADDING BY YEARS\n")
-				cellar.AddBeerByYears(id, date, size, years, count)
-				cellar.PrintCellar(&StdOutPrint{})
-			} else {
-				box := cellar.AddBeer(id, date, size)
-				print := &StdOutPrint{}
-				box.PrintCellar(print)
-			}
-		} else {
-			flags.SetOutput(os.Stdout)
-			flags.PrintDefaults()
-		}
-	}
-
-	cellar.printDiff()
-}
-
-func runPrintCellar(command string, cellar *BeerCellar) {
-	if command == "print" {
-		cellar.PrintCellar(&StdOutPrint{})
-	}
-}
-
-func runSync(command string, cellar *BeerCellar) {
-	if command == "sync" {
-		cellar.Sync(mainFetcher{}, mainConverter{})
-	}
-}
-
-func runRemoveBeer(command string, flags *flag.FlagSet, id int, cellar *BeerCellar) {
-	if command == "remove" {
-		if flags.Parsed() {
-			cellar.RemoveBeer(id)
-			cellar.PrintCellar(&StdOutPrint{})
-		}
-	}
-}
-
-func runListBeers(command string, flags *flag.FlagSet, numBombers int, numSmall int, cellar *BeerCellar) {
-	if command == "list" {
-		if flags.Parsed() {
-			cellar.PrintBeers(numBombers, numSmall)
-		} else {
-			flags.PrintDefaults()
-		}
-	}
 }
