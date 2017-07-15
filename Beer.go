@@ -42,7 +42,7 @@ func main() {
 	var cellar = getCellarFlags.Int("cellar", 1, "The number of the cellar")
 
 	removeFlags := flag.NewFlagSet("Remove", flag.ExitOnError)
-	var rId = removeFlags.Int64("id", -1, "The id to be removed")
+	var rID = removeFlags.Int64("id", -1, "The id to be removed")
 
 	ip, port := getIP("beerserver")
 	conn, _ := grpc.Dial(ip+":"+strconv.Itoa(port), grpc.WithInsecure())
@@ -84,7 +84,7 @@ func main() {
 			}
 		case "remove":
 			if err := removeFlags.Parse(os.Args[2:]); err == nil {
-				beer, err := client.RemoveBeer(context.Background(), &pb.Beer{Id: *rId})
+				beer, err := client.RemoveBeer(context.Background(), &pb.Beer{Id: *rID})
 				if err != nil {
 					log.Fatalf("Error removing beer: %v", err)
 				}
