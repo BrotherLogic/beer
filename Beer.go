@@ -81,12 +81,6 @@ func main() {
 					log.Fatalf("Error getting cellar: %v", err)
 				}
 				for i, beer := range cellar.Beers {
-					if beer.Name == "" {
-						beer, err = client.GetName(context.Background(), beer)
-						if err != nil {
-							log.Fatalf("Error getting name: %v", err)
-						}
-					}
 					fmt.Printf("%v. %v\n", i+1, beer)
 				}
 			}
