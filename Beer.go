@@ -92,6 +92,15 @@ func main() {
 				}
 				fmt.Printf("REMOVED %v\n", beer)
 			}
+		case "drunk":
+			list, err := client.GetDrunk(context.Background(), &pb.Empty{})
+			if err != nil {
+				log.Fatalf("Error getting drunk beer: %v", err)
+			}
+
+			for i, beer := range list.Beers {
+				fmt.Printf("%v. %v\n", i+1, beer)
+			}
 		}
 	}
 }
