@@ -25,7 +25,6 @@ func getIP(servername string) (string, int) {
 	if err != nil {
 		return "", -1
 	}
-	log.Printf("Found %v", r)
 	return r.Ip, int(r.Port)
 }
 
