@@ -56,10 +56,9 @@ func main() {
 		case "get":
 			if err := getFlags.Parse(os.Args[2:]); err == nil {
 				beer, err := client.GetBeer(context.Background(), &pb.Beer{Size: *size})
-				if err != nil {
-					log.Fatalf("Error getting beer: %v", err)
+				if err == nil {
+					fmt.Printf("%v\n", beer)
 				}
-				fmt.Printf("%v\n", beer)
 			}
 		case "add":
 			if err := addFlags.Parse(os.Args[2:]); err == nil {
