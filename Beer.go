@@ -16,7 +16,7 @@ import (
 )
 
 func getIP(servername string) (string, int) {
-	conn, _ := grpc.Dial("192.168.86.64:50055", grpc.WithInsecure())
+	conn, _ := grpc.Dial("192.168.86.42:50055", grpc.WithInsecure())
 	defer conn.Close()
 
 	registry := pbdi.NewDiscoveryServiceClient(conn)
@@ -59,6 +59,7 @@ func main() {
 				if err == nil {
 					fmt.Printf("%v\n", beer)
 				}
+				log.Printf("%v", err)
 			}
 		case "add":
 			if err := addFlags.Parse(os.Args[2:]); err == nil {
