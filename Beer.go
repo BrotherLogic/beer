@@ -13,10 +13,11 @@ import (
 
 	pb "github.com/brotherlogic/beerserver/proto"
 	pbdi "github.com/brotherlogic/discovery/proto"
+	"github.com/brotherlogic/goserver/utils"
 )
 
 func getIP(servername string) (string, int) {
-	conn, _ := grpc.Dial("192.168.86.42:50055", grpc.WithInsecure())
+	conn, _ := grpc.Dial(utils.RegistryIP+":"+strconv.Itoa(utils.RegistryPort), grpc.WithInsecure())
 	defer conn.Close()
 
 	registry := pbdi.NewDiscoveryServiceClient(conn)
