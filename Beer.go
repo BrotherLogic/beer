@@ -14,6 +14,9 @@ import (
 	pb "github.com/brotherlogic/beerserver/proto"
 	pbdi "github.com/brotherlogic/discovery/proto"
 	"github.com/brotherlogic/goserver/utils"
+
+	//Needed to pull in gzip encoding init
+	_ "google.golang.org/grpc/encoding/gzip"
 )
 
 func getIP(servername string) (string, int) {
@@ -81,7 +84,8 @@ func main() {
 					log.Fatalf("Error getting cellar: %v", err)
 				}
 				for i, beer := range cellar.Beers {
-					fmt.Printf("%v. %v\n", i+1, beer)
+					d := time.Unix(beer.GetDrinkDate(), 0)
+					fmt.Printf("%v. [%v] %v\n", i+1, d, beer)
 				}
 			}
 		case "remove":
